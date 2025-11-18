@@ -19,7 +19,7 @@ class FileService:
 
     def _get_file_instance(self, user_id: int, file_id: int) -> DocumentCollectionFile:
         try:
-            file = self.db.query(DocumentCollectionFile).filter_by(
+            file: DocumentCollectionFile | None = self.db.query(DocumentCollectionFile).filter_by(
                 id=file_id,
                 user_id=user_id,
                 is_active=True
@@ -55,7 +55,6 @@ class FileService:
     def fetch_file_by_id(self, user_id: int, file_id: int) -> FileRead:
         try:
             file = self._get_file_instance(user_id, file_id)
-
             return FileRead.model_validate(file)
         except FileNotFoundException:
             raise

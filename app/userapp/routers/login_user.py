@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 )
 def login_user(user_data: UserLogin, user_service: DependsUserService) -> LoginResponse:
     try:
-        access_token,  refresh_token = user_service.login_user(user_data.email, user_data.password)
+        access_token, refresh_token = user_service.login_user(user_data.email, user_data.password)
 
         return LoginResponse(
             message="Login successful",

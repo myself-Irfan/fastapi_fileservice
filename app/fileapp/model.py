@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
-from app.taskapp.document_model import ApiResponse
+from app.taskapp.model import ApiResponse
 
 
 class FileBase(BaseModel):

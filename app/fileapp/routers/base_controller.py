@@ -6,8 +6,8 @@ from app.auth.dependencies import CurrentUser, get_current_user
 from app.fileapp.model import FileReadResponse, FileListResponse, ApiResponse
 from app.logger import get_logger
 from app.fileapp.services.base_service import FileService
-from app.fileapp.controller.upload_file import router as upload_router
-from app.fileapp.controller.download_file import router as download_router
+from app.fileapp.routers.upload_file import router as upload_router
+from app.fileapp.routers.download_file import router as download_router
 from app.fileapp.dependencies import get_file_service
 
 router = APIRouter(
