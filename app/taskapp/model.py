@@ -21,7 +21,7 @@ class DocumentCreate(DocumentBase):
 
 class DocumentUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=100, description="Collection title")
-    description: Optional[str] = Field(None, max_length=200, description="Collection description")
+    description: Optional[str] = Field(None, min_length=1, max_length=200, description="Collection description")
 
     @model_validator(mode='after')
     def ensure_one_exists(self):
