@@ -30,3 +30,101 @@ class TestDocumentCreateModel:
 
         errors = validation_err.value.errors()
         assert any(error['loc'] == ('title',) for error in errors)
+
+    def test_optional_desc(self, valid_collection_data):
+        valid_collection_data.pop('description')
+
+        collection = DocumentCreate(**valid_collection_data)
+        assert collection.description is None
+
+    def test_missing_title(self, valid_collection_data):
+        valid_collection_data.pop('title')
+
+        with pytest.raises(ValidationError) as validation_err:
+            DocumentCreate(**valid_collection_data)
+
+        errors = validation_err.value.errors()
+        assert any(error['loc'] == ('title',) for error in errors)
+
+    def test_min_valid_value(self):
+        data = {
+            'title': 'ABC'
+        }
+
+        collection = DocumentCreate(**data)
+
+        assert collection.title == 'ABC'
+        assert collection.description is None
+
+    def test_title_special_chars(self, valid_collection_data):
+        valid_collection_data['title'] = "Project: API & Database Setup (Phase 1)"
+
+        collection = DocumentCreate(**valid_collection_data)
+        assert collection.title == valid_collection_data['title']
+
+    def test_empty_title(self, valid_collection_data):
+        valid_collection_data['title'] = ''
+
+        with pytest.raises(ValidationError) as validation_err:
+            DocumentCreate(**valid_collection_data)
+
+        errors = validation_err.value.errors()
+        assert any(error['loc'] == ('title',) for error in errors)
+
+    def test_whitespace_title(self, valid_collection_data):
+        valid_collection_data['title'] = ' '
+
+        with pytest.raises(ValidationError) as validation_err:
+            DocumentCreate(**valid_collection_data)
+
+        errors = validation_err.value.errors()
+        assert any(error['loc'] == ('title',) for error in errors)
+
+    def test_long_description(self, valid_collection_data):
+        valid_collection_data['description'] = 'a' * 5000
+
+        with pytest.raises(ValidationError) as validation_err:
+            DocumentCreate(**valid_collection_data)
+
+        errors = validation_err.value.errors()
+        assert any(error['loc'] == ('description',) for error in errors)
+
+@pytest.mark.unit
+@pytest.mark.taskapp
+class TestDocumentUpdateModel:
+    def test_valid_document_update(self, valid_collection_data):
+        document = DocumentUpdate(**valid_collection_data)
+
+        assert document.title == valid_collection_data['title']
+        assert document.description == valid_collection_data['description']
+
+    def test_partial_update_title(self, valid_collection_data):
+        valid_collection_data.pop('description')
+        collection = DocumentUpdate(**valid_collection_data)
+        assert collection.title == valid_collection_data['title']
+
+    def test_partial_update_desc(self, valid_collection_data):
+        valid_collection_data.pop('title')
+        collection = DocumentUpdate(**valid_collection_data)
+        assert collection.description == valid_collection_data['description']
+
+    def test_update_empty(self):
+        with pytest.raises(ValidationError) as exc:
+            DocumentUpdate()
+
+        errors = exc.value.errors()
+
+        assert len(errors) == 1
+        assert errors[0]["type"] == "value_error"
+        assert "Provide at least one field to update" in errors[0]["msg"]
+
+    def test_update_title_short(self):
+        data = {
+            'title': ''
+        }
+
+        with pytest.raises(ValidationError) as validation_err:
+            DocumentUpdate(**data)
+
+        errors = validation_err.value.errors()
+        assert any(error['loc'] == ('title', ) for error in errors)
