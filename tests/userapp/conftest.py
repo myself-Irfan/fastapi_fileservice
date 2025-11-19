@@ -67,6 +67,10 @@ def login_payload(valid_user_data):
 @pytest.fixture(scope='session')
 def make_test_user(db_engine):
     with Session(bind=db_engine) as session:
+        existing = session.query(DocumentUser).filter_by(email="test@example.com").first()
+        if existing:
+            return existing
+
         user = DocumentUser(
             name="Test User",
             email="test@example.com",
@@ -75,5 +79,4 @@ def make_test_user(db_engine):
         session.add(user)
         session.commit()
         session.refresh(user)
-
-    return user
+        return user

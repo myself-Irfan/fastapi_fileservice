@@ -3,6 +3,7 @@ from faker import Faker
 from datetime import datetime
 from sqlalchemy.orm import Session
 
+from tests.userapp.conftest import make_test_user
 from app.taskapp.entities import DocumentCollection
 from app.taskapp.service import DocumentService
 from app.taskapp.model import DocumentCreate, DocumentUpdate
@@ -40,7 +41,6 @@ def sample_collection_entity(valid_collection_data, make_test_user):
         user_id=make_test_user.id,
         title=valid_collection_data['title'],
         description=valid_collection_data['description'],
-        is_active=True,
         created_at=datetime.now()
     )
 
