@@ -3,6 +3,7 @@ from faker import Faker
 from datetime import datetime
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import get_current_user
 from tests.userapp.conftest import make_test_user
 from app.taskapp.entities import DocumentCollection
 from app.taskapp.service import DocumentService
@@ -70,3 +71,19 @@ def make_test_collection(db_engine, make_test_user):
         session.refresh(collection)
 
     return collection
+
+@pytest.fixture
+def mock_current_user(make_test_user):
+    class MockUser:
+        def __init__(self, user):
+            self.id = user.id
+            self.name = user.name
+            self.email = user.email
+
+    return MockUser(make_test_user)
+
+@pytest.fixture
+def auth_headers(client, make_test_user):
+    client.app.dependency_overrides[get_current_user] = lambda: make_test_user
+
+    return {'Authorization': "Bearer mock_token"}
