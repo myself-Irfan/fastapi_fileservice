@@ -38,3 +38,41 @@ class TestCreateCollectionRoute:
         )
 
         assert response.status_code == status.HTTP_201_CREATED
+
+    def test_create_document_missing_title(self, client, valid_collection_data, auth_headers):
+        valid_collection_data.pop('title')
+        response = client.post(self._create_url, json=valid_collection_data, headers=auth_headers)
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    def test_create_document_empty_payload(self, client, auth_headers):
+        response = client.post(self._create_url, json={}, headers=auth_headers)
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    def test_create_document_title_too_long(self, client, auth_headers):
+        data = {"title": "a" * 150}
+        response = client.post(self._create_url, json=data, headers=auth_headers)
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    def test_create_document_with_special_chars(self, client, auth_headers):
+        data = {
+            "title": "Project: API & Database Setup (Phase 1)",
+            "description": "Setup API endpoints & database models"
+        }
+        response = client.post(self._create_url, json=data, headers=auth_headers)
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_create_document_empty_title(self, client, auth_headers):
+        data = {"title": ""}
+        response = client.post(self._create_url, json=data, headers=auth_headers)
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    def test_create_document_whitespace_title(self, client, auth_headers):
+        data = {"title": "   "}
+        response = client.post(self._create_url, json=data, headers=auth_headers)
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
