@@ -58,12 +58,12 @@ def multiple_collection_entity(make_test_user):
     ]
 
 @pytest.fixture(scope='session')
-def make_test_document(db_engine, make_test_user):
+def make_test_collection(db_engine, make_test_user):
     with Session(bind=db_engine) as session:
         collection = DocumentCollection(
             user_id=make_test_user.id,
-            title=fake.sentence(nb_words=5),
-            description=fake.text(max_nb_chars=200)
+            title='Title for Init Test Collection',
+            description='Description for Init Test Collection'
         )
         session.add(collection)
         session.commit()
