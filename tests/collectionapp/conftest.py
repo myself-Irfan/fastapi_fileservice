@@ -58,7 +58,7 @@ def multiple_collection_entity(make_test_user):
         for i in range(4)
     ]
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def make_test_collection(db_engine, make_test_user):
     with Session(bind=db_engine) as session:
         collection = DocumentCollection(

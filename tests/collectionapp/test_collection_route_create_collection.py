@@ -3,7 +3,7 @@ from fastapi import status
 
 
 @pytest.mark.integration
-@pytest.mark.userapp
+@pytest.mark.taskapp
 class TestCreateCollectionRoute:
     @pytest.fixture(autouse=True)
     def setup(self):

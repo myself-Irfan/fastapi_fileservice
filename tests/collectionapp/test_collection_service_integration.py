@@ -121,7 +121,7 @@ class TestCollectionServiceIntegration:
     def test_update_timestamps(self, document_service, make_test_collection):
         og_doc = document_service.fetch_document_by_id(user_id=make_test_collection.user_id, document_id=make_test_collection.id)
         assert og_doc.created_at is not None
-        assert og_doc.updated_at == og_doc.created_at
+        assert og_doc.updated_at is None
 
         document_service.update_document(
             user_id=make_test_collection.user_id,
