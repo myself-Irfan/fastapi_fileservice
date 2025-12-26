@@ -8,6 +8,7 @@ class TestUpdateCollectionRoute:
     @pytest.fixture(autouse=True)
     def setup(self):
         self._update_url = 'api/tasks/{collection_id}'
+        self._create_url = 'api/tasks/'
 
     def test_update_collection_success(self, client, auth_headers, make_test_collection):
         url = self._update_url.format(collection_id=make_test_collection.id)
@@ -71,16 +72,8 @@ class TestUpdateCollectionRoute:
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    def test_update_collection_preserve_others(self, client, auth_headers, valid_collection_data):
-        create_resp = client.post(
-            '/api/tasks/',
-            json=valid_collection_data,
-            headers=auth_headers
-        )
-
-        col_id = int(create_resp.json()["message"].split("-")[1].split()[0])
-
-        url = self._update_url.format(collection_id=col_id)
+    def test_update_collection_preserve_others(self, client, auth_headers, make_test_collection):
+        url = self._update_url.format(collection_id=make_test_collection.id)
         update_data = {"title": "updated_title"}
         client.put(
             url,
@@ -93,4 +86,4 @@ class TestUpdateCollectionRoute:
             headers=auth_headers
         )
         assert get_resp.json()["data"]["title"] == update_data.get("title")
-        assert get_resp.json()["data"]["description"] == valid_collection_data.get("description")
+        assert get_resp.json()["data"]["description"] == make_test_collection.description
