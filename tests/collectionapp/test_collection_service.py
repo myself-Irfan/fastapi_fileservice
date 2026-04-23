@@ -3,7 +3,8 @@ from unittest.mock import Mock
 from sqlalchemy.exc import SQLAlchemyError,OperationalError
 
 from app.taskapp.exceptions import CollectionOperationException, CollectionNotFoundException
-from app.taskapp.model import DocumentCreate, DocumentUpdate
+from app.taskapp.models.create_document_model import DocumentCreateRequestModel
+from app.taskapp.models.update_document_model import DocumentUpdateRequestModel
 
 
 @pytest.mark.unit
@@ -33,7 +34,7 @@ class TestCollectionServiceCreate:
         mock_document_service.db.refresh = Mock(side_effect=lambda obj: setattr(obj, 'id', 5))
         collection_id = mock_document_service.create_document(
             user_id=1,
-            doc_col_data=DocumentCreate(**valid_collection_data)
+            doc_col_data=DocumentCreateRequestModel(**valid_collection_data)
         )
 
         assert collection_id == 5
@@ -46,7 +47,7 @@ class TestCollectionServiceCreate:
         )
         collection_id = mock_document_service.create_document(
             user_id=1,
-            doc_col_data=DocumentCreate(**valid_collection_data)
+            doc_col_data=DocumentCreateRequestModel(**valid_collection_data)
         )
 
         assert collection_id == 3
@@ -137,7 +138,7 @@ class TestCollectionServiceUpdate:
         mock_document_service.update_document(
             user_id=1,
             document_id=1,
-            doc_col_data=DocumentUpdate(**valid_collection_data)
+            doc_col_data=DocumentUpdateRequestModel(**valid_collection_data)
         )
         mock_document_service.db.commit.assert_called_once()
 
@@ -148,7 +149,7 @@ class TestCollectionServiceUpdate:
         mock_document_service.update_document(
             user_id=1,
             document_id=1,
-            doc_col_data=DocumentUpdate(**valid_collection_data)
+            doc_col_data=DocumentUpdateRequestModel(**valid_collection_data)
         )
         mock_document_service.db.commit.assert_called_once()
 

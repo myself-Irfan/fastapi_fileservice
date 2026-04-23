@@ -7,7 +7,8 @@ from app.auth.dependencies import get_current_user
 from tests.userapp.conftest import make_test_user
 from app.taskapp.entities import DocumentCollection
 from app.taskapp.service import DocumentService
-from app.taskapp.model import DocumentCreate, DocumentUpdate
+from app.taskapp.models.create_document_model import DocumentCreateRequestModel
+from app.taskapp.models.update_document_model import DocumentUpdateRequestModel
 
 
 fake = Faker()
@@ -29,11 +30,11 @@ def valid_collection_data():
 
 @pytest.fixture
 def valid_collection_create(valid_collection_data):
-    return DocumentCreate(**valid_collection_data)
+    return DocumentCreateRequestModel(**valid_collection_data)
 
 @pytest.fixture
 def valid_collection_update(valid_collection_data):
-    return DocumentUpdate(**valid_collection_data)
+    return DocumentUpdateRequestModel(**valid_collection_data)
 
 @pytest.fixture
 def sample_collection_entity(valid_collection_data, make_test_user):

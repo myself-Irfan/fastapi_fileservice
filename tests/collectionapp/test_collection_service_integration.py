@@ -2,7 +2,8 @@ import pytest
 from faker import Faker
 
 from app.taskapp.exceptions import CollectionNotFoundException
-from app.taskapp.model import DocumentUpdate, DocumentCreate
+from app.taskapp.models.create_document_model import DocumentCreateRequestModel
+from app.taskapp.models.update_document_model import DocumentUpdateRequestModel
 
 fake = Faker()
 
@@ -25,7 +26,7 @@ class TestCollectionServiceIntegration:
         assert fetched_doc.description == valid_collection_create.description
 
     def test_update_verify_collection(self, document_service, make_test_collection):
-        updated_data = DocumentUpdate(
+        updated_data = DocumentUpdateRequestModel(
             title='updated_title',
             description='updated_description'
         )
@@ -64,7 +65,7 @@ class TestCollectionServiceIntegration:
             }
             document_service.create_document(
                 user_id=make_test_user.id,
-                doc_col_data=DocumentCreate(**data)
+                doc_col_data=DocumentCreateRequestModel(**data)
             )
 
         collections = document_service.fetch_documents(user_id=make_test_user.id)
@@ -74,14 +75,14 @@ class TestCollectionServiceIntegration:
     def test_user_data_isolation(self, document_service):
         doc_id_u1 = document_service.create_document(
             user_id=1,
-            doc_col_data=DocumentCreate(
+            doc_col_data=DocumentCreateRequestModel(
                 title=fake.sentence(nb_words=5),
                 description=fake.text(max_nb_chars=200)
             )
         )
         doc_id_u2 = document_service.create_document(
             user_id=2,
-            doc_col_data=DocumentCreate(
+            doc_col_data=DocumentCreateRequestModel(
                 title=fake.sentence(nb_words=5),
                 description=fake.text(max_nb_chars=200)
             )
@@ -101,7 +102,7 @@ class TestCollectionServiceIntegration:
     def test_partial_update_preserves_other_fields(self, document_service, make_test_collection):
         og_doc = document_service.fetch_document_by_id(user_id=make_test_collection.user_id, document_id=make_test_collection.id)
 
-        update_data = DocumentUpdate(title="New Title")
+        update_data = DocumentUpdateRequestModel(title="New Title")
         document_service.update_document(user_id=1, document_id=og_doc.id, doc_col_data=update_data)
 
         updated_doc = document_service.fetch_document_by_id(user_id=1, document_id=og_doc.id)
@@ -110,7 +111,7 @@ class TestCollectionServiceIntegration:
         assert updated_doc.description == og_doc.description
 
     def test_create_document_only_title(self, document_service):
-        doc_data = DocumentCreate(title="Title Only")
+        doc_data = DocumentCreateRequestModel(title="Title Only")
         doc_id = document_service.create_document(user_id=1, doc_col_data=doc_data)
 
         fetched_doc = document_service.fetch_document_by_id(user_id=1, document_id=doc_id)
@@ -126,7 +127,7 @@ class TestCollectionServiceIntegration:
         document_service.update_document(
             user_id=make_test_collection.user_id,
             document_id=make_test_collection.id,
-            doc_col_data=DocumentUpdate(
+            doc_col_data=DocumentUpdateRequestModel(
                 title='Updated Title'
             )
         )

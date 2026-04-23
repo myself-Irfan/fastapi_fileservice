@@ -5,6 +5,6 @@ services:
     container_name: fastapi_todoapp
     env_file: .env
     ports:
-      - "8080:8080"
+      - "8008:8080"
     volumes:
       - ./logs:/app/logs

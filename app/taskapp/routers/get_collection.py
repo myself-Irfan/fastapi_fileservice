@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.auth.dependencies import CurrentUser
 from app.taskapp.dependencies import DependsDocumentService
-from app.taskapp.model import DocumentResponse
+from app.taskapp.models.read_document_model import DocumentResponseModel
 from app.logger import get_logger
 from app.taskapp.exceptions import CollectionOperationException
 
@@ -12,22 +12,22 @@ logger = get_logger()
 
 @router.get(
     "/{document_id}",
-    response_model=DocumentResponse,
+    response_model=DocumentResponseModel,
     summary='Get a collection by ID',
     description='Retrieve a specific collection by its ID',
     responses={
         200: {
             'description': 'Collection retrieved successfully',
-            'model': DocumentResponse
+            'model': DocumentResponseModel
         },
         404: {'description': 'Collection not found'},
         500: {'description': 'Internal server error'}
     }
 )
-def get_collection(document_id: int, current_user: CurrentUser, document_service: DependsDocumentService) -> DocumentResponse:
+def get_collection(document_id: int, current_user: CurrentUser, document_service: DependsDocumentService) -> DocumentResponseModel:
     try:
         task = document_service.fetch_document_by_id(document_id=document_id, user_id=current_user.id)
-        return DocumentResponse(
+        return DocumentResponseModel(
             message='Collection retrieved successfully',
             data=task
         )

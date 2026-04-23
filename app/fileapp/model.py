@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
-from app.taskapp.model import ApiResponse
+from app.taskapp.models.base_document_model import ApiResponse
 
 
 class FileBase(BaseModel):
@@ -26,7 +26,7 @@ class FileRead(FileBase):
     extension: str
     checksum: Optional[str]
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime]
     document_id: Optional[int]
     user_id: Optional[int]
 

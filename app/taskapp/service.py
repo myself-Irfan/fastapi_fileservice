@@ -5,7 +5,9 @@ from typing import List, Optional
 
 from app.logger import get_logger
 from app.taskapp.entities import DocumentCollection
-from app.taskapp.model import DocumentRead, DocumentCreate, DocumentUpdate
+from app.taskapp.models.read_document_model import DocumentReadModel
+from app.taskapp.models.create_document_model import DocumentCreateRequestModel
+from app.taskapp.models.update_document_model import DocumentUpdateRequestModel
 from app.taskapp.exceptions import CollectionNotFoundException, CollectionOperationException
 
 logger = get_logger(__name__)
@@ -33,13 +35,13 @@ class DocumentService:
                 raise CollectionNotFoundException(f'collection-{collection_id} not found')
             return collection
 
-    def fetch_documents(self, user_id: int) -> List[DocumentRead]:
+    def fetch_documents(self, user_id: int) -> List[DocumentReadModel]:
         try:
             documents = self.db.query(DocumentCollection).filter_by(
                 user_id=user_id
             ).all()
 
-            return [DocumentRead.model_validate(document) for document in documents]
+            return [DocumentReadModel.model_validate(document) for document in documents]
         except (SQLAlchemyError, OperationalError) as db_err:
             logger.error("document collections retrieval failed", error=db_err, exc_info=True)
             raise CollectionOperationException(
@@ -47,11 +49,11 @@ class DocumentService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             ) from db_err
 
-    def fetch_document_by_id(self, user_id: int, document_id: int) -> DocumentRead:
+    def fetch_document_by_id(self, user_id: int, document_id: int) -> DocumentReadModel:
         document: DocumentCollection = self._get_document_instance(user_id, document_id)
-        return DocumentRead.model_validate(document)
+        return DocumentReadModel.model_validate(document)
 
-    def create_document(self, user_id: int, doc_col_data: DocumentCreate) -> int:
+    def create_document(self, user_id: int, doc_col_data: DocumentCreateRequestModel) -> int:
         try:
             new_doc_col: DocumentCollection = DocumentCollection(**doc_col_data.model_dump(), user_id=user_id)
             self.db.add(new_doc_col)
@@ -67,7 +69,7 @@ class DocumentService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             ) from db_err
 
-    def update_document(self, user_id: int, document_id: int, doc_col_data: DocumentUpdate) -> None:
+    def update_document(self, user_id: int, document_id: int, doc_col_data: DocumentUpdateRequestModel) -> None:
         try:
             document: DocumentCollection = self._get_document_instance(user_id, document_id)
 

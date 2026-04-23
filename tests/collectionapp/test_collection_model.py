@@ -2,14 +2,16 @@ import pytest
 from pydantic import ValidationError
 from datetime import datetime
 
-from app.taskapp.model import DocumentCreate, DocumentUpdate, DocumentRead
+from app.taskapp.models.create_document_model import DocumentCreateRequestModel
+from app.taskapp.models.update_document_model import DocumentUpdateRequestModel
+from app.taskapp.models.read_document_model import DocumentReadModelModel
 
 
 @pytest.mark.unit
 @pytest.mark.taskapp
 class TestDocumentCreateModel:
     def test_valid_collection_create(self, valid_collection_data):
-        document = DocumentCreate(**valid_collection_data)
+        document = DocumentCreateRequestModel(**valid_collection_data)
 
         assert document.title == valid_collection_data['title']
         assert document.description == valid_collection_data['description']
@@ -18,7 +20,7 @@ class TestDocumentCreateModel:
         valid_collection_data['title'] = ''
 
         with pytest.raises(ValidationError) as validation_err:
-            DocumentCreate(**valid_collection_data)
+            DocumentCreateRequestModel(**valid_collection_data)
 
         errors = validation_err.value.errors()
         assert any(error['loc'] == ('title',) for error in errors)
@@ -27,7 +29,7 @@ class TestDocumentCreateModel:
         valid_collection_data['title'] = valid_collection_data['title'] * 100
 
         with pytest.raises(ValidationError) as validation_err:
-            DocumentCreate(**valid_collection_data)
+            DocumentCreateRequestModel(**valid_collection_data)
 
         errors = validation_err.value.errors()
         assert any(error['loc'] == ('title',) for error in errors)
@@ -35,14 +37,14 @@ class TestDocumentCreateModel:
     def test_optional_desc(self, valid_collection_data):
         valid_collection_data.pop('description')
 
-        collection = DocumentCreate(**valid_collection_data)
+        collection = DocumentCreateRequestModel(**valid_collection_data)
         assert collection.description is None
 
     def test_missing_title(self, valid_collection_data):
         valid_collection_data.pop('title')
 
         with pytest.raises(ValidationError) as validation_err:
-            DocumentCreate(**valid_collection_data)
+            DocumentCreateRequestModel(**valid_collection_data)
 
         errors = validation_err.value.errors()
         assert any(error['loc'] == ('title',) for error in errors)
@@ -52,7 +54,7 @@ class TestDocumentCreateModel:
             'title': 'ABC'
         }
 
-        collection = DocumentCreate(**data)
+        collection = DocumentCreateRequestModel(**data)
 
         assert collection.title == 'ABC'
         assert collection.description is None
@@ -60,14 +62,14 @@ class TestDocumentCreateModel:
     def test_title_special_chars(self, valid_collection_data):
         valid_collection_data['title'] = "Project: API & Database Setup (Phase 1)"
 
-        collection = DocumentCreate(**valid_collection_data)
+        collection = DocumentCreateRequestModel(**valid_collection_data)
         assert collection.title == valid_collection_data['title']
 
     def test_empty_title(self, valid_collection_data):
         valid_collection_data['title'] = ''
 
         with pytest.raises(ValidationError) as validation_err:
-            DocumentCreate(**valid_collection_data)
+            DocumentCreateRequestModel(**valid_collection_data)
 
         errors = validation_err.value.errors()
         assert any(error['loc'] == ('title',) for error in errors)
@@ -76,7 +78,7 @@ class TestDocumentCreateModel:
         valid_collection_data['title'] = ' '
 
         with pytest.raises(ValidationError) as validation_err:
-            DocumentCreate(**valid_collection_data)
+            DocumentCreateRequestModel(**valid_collection_data)
 
         errors = validation_err.value.errors()
         assert any(error['loc'] == ('title',) for error in errors)
@@ -85,7 +87,7 @@ class TestDocumentCreateModel:
         valid_collection_data['description'] = 'a' * 5000
 
         with pytest.raises(ValidationError) as validation_err:
-            DocumentCreate(**valid_collection_data)
+            DocumentCreateRequestModel(**valid_collection_data)
 
         errors = validation_err.value.errors()
         assert any(error['loc'] == ('description',) for error in errors)
@@ -94,24 +96,24 @@ class TestDocumentCreateModel:
 @pytest.mark.taskapp
 class TestDocumentUpdateModel:
     def test_valid_document_update(self, valid_collection_data):
-        document = DocumentUpdate(**valid_collection_data)
+        document = DocumentUpdateRequestModel(**valid_collection_data)
 
         assert document.title == valid_collection_data['title']
         assert document.description == valid_collection_data['description']
 
     def test_partial_update_title(self, valid_collection_data):
         valid_collection_data.pop('description')
-        collection = DocumentUpdate(**valid_collection_data)
+        collection = DocumentUpdateRequestModel(**valid_collection_data)
         assert collection.title == valid_collection_data['title']
 
     def test_partial_update_desc(self, valid_collection_data):
         valid_collection_data.pop('title')
-        collection = DocumentUpdate(**valid_collection_data)
+        collection = DocumentUpdateRequestModel(**valid_collection_data)
         assert collection.description == valid_collection_data['description']
 
     def test_update_empty(self):
         with pytest.raises(ValidationError) as exc:
-            DocumentUpdate()
+            DocumentUpdateRequestModel()
 
         errors = exc.value.errors()
 
@@ -125,7 +127,7 @@ class TestDocumentUpdateModel:
         }
 
         with pytest.raises(ValidationError) as validation_err:
-            DocumentUpdate(**data)
+            DocumentUpdateRequestModel(**data)
 
         errors = validation_err.value.errors()
         assert any(error['loc'] == ('title', ) for error in errors)
@@ -136,7 +138,7 @@ class TestDocumentUpdateModel:
         }
 
         with pytest.raises(ValidationError) as validation_err:
-            DocumentUpdate(**data)
+            DocumentUpdateRequestModel(**data)
 
         errors = validation_err.value.errors()
         assert any(error['loc'] == ('title',) for error in errors)
@@ -148,7 +150,7 @@ class TestDocumentUpdateModel:
         }
 
         with pytest.raises(ValidationError) as exc:
-            DocumentUpdate(**data)
+            DocumentUpdateRequestModel(**data)
 
         errors = exc.value.errors()
 
@@ -158,7 +160,7 @@ class TestDocumentUpdateModel:
 
 @pytest.mark.unit
 @pytest.mark.taskapp
-class TestDocumentReadModel:
+class TestDocumentReadModelModel:
     def test_collection_read_from_dict(self, valid_collection_data):
         data = {
             'id': 1,
@@ -166,13 +168,13 @@ class TestDocumentReadModel:
             'created_at': datetime.now(),
             'updated_at': None
         }
-        collection = DocumentRead(**data)
+        collection = DocumentReadModel(**data)
 
         assert collection.id == 1
         assert collection.title == valid_collection_data['title']
 
     def test_collection_read_orm(self, sample_collection_entity):
-        collection = DocumentRead.model_validate(sample_collection_entity)
+        collection = DocumentReadModel.model_validate(sample_collection_entity)
 
         assert collection.id == sample_collection_entity.id
         assert collection.title == sample_collection_entity.title
@@ -180,7 +182,7 @@ class TestDocumentReadModel:
 
     def test_collection_read_missing_id(self, valid_collection_data):
         with pytest.raises(ValidationError) as validation_err:
-            DocumentRead(**valid_collection_data)
+            DocumentReadModel(**valid_collection_data)
 
         errors = validation_err.value.errors()
         assert any(error['loc'] == ('id', ) for error in errors)
@@ -190,7 +192,7 @@ class TestDocumentReadModel:
         valid_collection_data.pop('title')
 
         with pytest.raises(ValidationError) as validation_err:
-            DocumentRead(**valid_collection_data)
+            DocumentReadModel(**valid_collection_data)
 
         errors = validation_err.value.errors()
         assert any(error['loc'] == ('title',) for error in errors)
@@ -203,5 +205,5 @@ class TestDocumentReadModel:
             'updated_at': datetime.now()
         }
 
-        collection = DocumentRead(**data)
+        collection = DocumentReadModel(**data)
         assert collection.updated_at is not None
