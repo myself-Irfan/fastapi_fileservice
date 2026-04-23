@@ -116,7 +116,7 @@ def mock_logger(mocker):
     """
     modules_to_patch = [
         'app.userapp.service.logger',
-        'app.taskapp.document_service.logger',
+        'app.taskapp.service.logger',
         'app.fileapp.services.base_service.logger',
         'app.fileapp.services.download_service.logger',
         'app.fileapp.services.upload_service.logger',

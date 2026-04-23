@@ -22,7 +22,7 @@ class LoggingContextMiddleware(BaseHTTPMiddleware):
 
     def __init__(self, app: ASGIApp):
         super().__init__(app)
-        self.masking_keys = settings.masking_keys
+        self.masking_keys = settings.masking_keys_set
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         structlog.contextvars.clear_contextvars()

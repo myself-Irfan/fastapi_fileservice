@@ -14,10 +14,10 @@ class Settings(BaseSettings):
 
     @property
     def masking_keys_set(self) -> Set[str]:
-        return set(s.strip() for s in self.masking_keys.split("") if s.strip())
+        return set(s.strip() for s in self.masking_keys.split(",") if s.strip())
 
     # Security
-    secret_key: str = Field(default="fallback-secret-key")
+    secret_key: str = Field()
     algorithm: str = Field(default="HS256")
     access_token_expire_minutes: int = Field(default=15)
     refresh_token_expire_days: int = Field(default=7)

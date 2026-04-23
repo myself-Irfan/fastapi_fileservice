@@ -125,7 +125,7 @@ class AuthenticationService:
             """
         return cls._create_jwt(
             user_id=user_id,
-            expires_delta=timedelta(minutes=settings.refresh_token_expire_days),
+            expires_delta=timedelta(days=settings.refresh_token_expire_days),
             token_type='refresh'
         )
 

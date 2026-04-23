@@ -46,7 +46,7 @@ class FileUploadService:
 
         return temp_path
 
-    def __validate_file_type(self, temp_path: Path, file_name: str) -> bool:
+    def __validate_file_type(self, temp_path: Path, file_name: str) -> Optional[str]:
         extension = Path(file_name).suffix.lower()
         real_mime_type = magic.from_file(str(temp_path), mime=True)
 
@@ -55,7 +55,7 @@ class FileUploadService:
                 "File type not allowed",
                 filename=file_name
             )
-            return False
+            return None
 
         expected_mime = self.extension_to_mime.get(extension)
         if real_mime_type != expected_mime:
@@ -65,9 +65,9 @@ class FileUploadService:
                 expected_type=expected_mime,
                 detected_type=real_mime_type
             )
-            return False
+            return None
 
-        return True
+        return real_mime_type
 
     def __calculate_checksum(self, file_path: str) -> str:
         sha256_hash = hashlib.sha256()
@@ -88,13 +88,14 @@ class FileUploadService:
         try:
             temp_path = self.__save_temp_file(file)
 
-            if not self.__validate_file_type(temp_path, file.filename):
+            detected_mime = self.__validate_file_type(temp_path, file.filename)
+            if detected_mime is None:
                 raise InvalidFileTypeException("file type mismatch or not allowed")
 
             checksum = self.__calculate_checksum(str(temp_path))
             file_size = os.path.getsize(temp_path)
             extension = Path(file.filename).suffix.lower()
-            mime_type = file.content_type
+            mime_type = detected_mime
             file_title = file.filename
 
             existing_file = (
@@ -150,6 +151,3 @@ class FileUploadService:
                 os.remove(temp_path)
             logger.error("file upload failed", error_type="unexpected error", error=e, exc_info=True)
             raise FileProcessingException(f"unexpected error during file upload: {str(e)}") from e
-
-
-# TODO: save mime_type from magic?

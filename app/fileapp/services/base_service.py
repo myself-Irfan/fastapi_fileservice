@@ -60,7 +60,7 @@ class FileService:
             raise
         except SQLAlchemyError as sql_err:
             logger.error("file retrival failed", error_type="database error", file_id=file_id, error=sql_err, exc_info=True)
-            raise sql_err
+            raise
 
     def delete_file(self, user_id: int, file_id: int) -> bool:
         """
@@ -70,11 +70,6 @@ class FileService:
 
         try:
             file = self._get_file_instance(user_id, file_id)
-
-            if not file:
-                logger.warning("file not found for deletion", file_id=file_id)
-                raise FileNotFoundException(f"file-{file_id} not found")
-
             file.is_active = False
             self.db.commit()
 

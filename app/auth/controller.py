@@ -31,7 +31,7 @@ def refresh_user_access_token(db: DbSession, authorization: str = Header(...)) -
     Refresh user access token using a valid refresh token
     """
 
-    if not authorization.startswith("Bearer"):
+    if not authorization.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='Invalid Authorization header format'

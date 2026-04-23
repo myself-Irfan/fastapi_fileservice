@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.exc import SQLAlchemyError
 from typing import Optional
 
-from app.auth.dependencies import CurrentUser, get_current_user
+from app.auth.dependencies import CurrentUser
 from app.fileapp.model import FileReadResponse, FileListResponse, ApiResponse
 from app.logger import get_logger
 from app.fileapp.services.base_service import FileService
@@ -13,7 +13,6 @@ from app.fileapp.dependencies import get_file_service
 router = APIRouter(
     prefix="/api/files",
     tags=["Collection File APIs"],
-    dependencies=[Depends(get_current_user)]
 )
 router.include_router(upload_router)
 router.include_router(download_router)
@@ -90,12 +89,6 @@ def get_file(
             user_id=current_user.id,
             file_id=file_id
         )
-
-        if not file:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"file-{file_id} not found"
-            )
 
         return FileReadResponse(
             message="file retrival successful",
