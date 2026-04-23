@@ -4,7 +4,7 @@ from datetime import datetime
 
 from app.taskapp.models.create_document_model import DocumentCreateRequestModel
 from app.taskapp.models.update_document_model import DocumentUpdateRequestModel
-from app.taskapp.models.read_document_model import DocumentReadModelModel
+from app.taskapp.models.read_document_model import DocumentReadModel
 
 
 @pytest.mark.unit

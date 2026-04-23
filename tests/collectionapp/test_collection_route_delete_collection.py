@@ -15,9 +15,9 @@ class TestDeleteCollectionRoute:
         url = self._delete_url.format(collection_id=make_test_collection.id)
         response = client.delete(url, headers=auth_headers)
 
-        assert response.status_code == status.HTTP_200_OK
-        assert 'message' in response.json()
-        assert 'deleted successfully' in response.json()['message'].lower()
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.text == ''
+
 
     def test_delete_collection_not_found(self, client, auth_headers):
         url = self._delete_url.format(collection_id=999)
@@ -30,7 +30,7 @@ class TestDeleteCollectionRoute:
         url = self._delete_url.format(collection_id=make_test_collection.id)
 
         response = client.delete(url, headers=auth_headers)
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_204_NO_CONTENT
 
         response = client.delete(url, headers=auth_headers)
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -52,3 +52,9 @@ class TestDeleteCollectionRoute:
         response = client.delete(url, headers=auth_headers)
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    def test_delete_without_auth(self, client, make_test_collection):
+        url = self._delete_url.format(collection_id=make_test_collection.id)
+        response = client.delete(url)
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED

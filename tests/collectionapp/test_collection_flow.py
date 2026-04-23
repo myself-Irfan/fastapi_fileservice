@@ -51,7 +51,7 @@ class TestCollectionFlowIntegration:
             self._query_param_url.format(collection_id=col_id),
             headers=auth_headers
         )
-        assert delete_resp.status_code == status.HTTP_200_OK
+        assert delete_resp.status_code == status.HTTP_204_NO_CONTENT
 
         get_resp = client.get(
             self._query_param_url.format(collection_id=col_id),
