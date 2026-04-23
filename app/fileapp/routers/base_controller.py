@@ -3,7 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from typing import Optional
 
 from app.auth.dependencies import CurrentUser
-from app.fileapp.model import FileReadResponse, FileListResponse, ApiResponse
+from app.fileapp.model import FileReadResponse, FileListResponse
 from app.logger import get_logger
 from app.fileapp.services.base_service import FileService
 from app.fileapp.routers.upload_file import router as upload_router
@@ -112,33 +112,25 @@ def get_file(
 
 @router.delete(
     "/{file_id}",
-    response_model=ApiResponse,
+    status_code=status.HTTP_204_NO_CONTENT,
     summary="delete a file",
     description="soft delete a file",
     responses={
-
+        204: {"description": "file deleted successfully"},
+        404: {"description": "file not found"},
+        500: {"description": "internal server error"}
     }
 )
 def delete_file(
         file_id: int,
         current_user: CurrentUser,
         file_service: FileService = Depends(get_file_service)
-) -> ApiResponse:
+) -> None:
 
     try:
-        deleted = file_service.delete_file(
+        file_service.delete_file(
             user_id=current_user.id,
             file_id=file_id
-        )
-
-        if not deleted:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"file-{file_id} not found"
-            )
-
-        return ApiResponse(
-            message=f"file-{file_id} deleted successfully"
         )
     except HTTPException:
         raise
