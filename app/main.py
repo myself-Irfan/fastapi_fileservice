@@ -2,21 +2,15 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 
-from app.auth.controller import router as auth_api_router
 from app.middleware.logging_context import LoggingContextMiddleware
-from app.taskapp.routers import router as collection_api_router
-from app.userapp.routers import router as user_api_router
-from app.userapp.view import router as user_view_router
-from app.taskapp.task_views import router as task_view_router
-from app.fileapp.routers.base_controller import router as file_api_router
-from app.database.core import engine, Base
 from app.validation_handler import ValidationErrorHandler
 from app.logger import configure_logger
+from app.routers import register_routers
 
-
-configure_logger()
 
 def create_app() -> FastAPI:
+    configure_logger()
+
     app = FastAPI(
         title='Task Management App',
         description='A taskapp management App with JWT',
@@ -32,19 +26,14 @@ def create_app() -> FastAPI:
         ValidationErrorHandler.handle_validation_error
     )
 
+    app.mount('/static', StaticFiles(directory='static'), name='static')
+
+    register_routers(app)
+
     return app
 
 app = create_app()
-app.mount('/static', StaticFiles(directory='static'), name='static')
 
-Base.metadata.create_all(bind=engine)
-
-app.include_router(auth_api_router)
-app.include_router(user_api_router)
-app.include_router(user_view_router)
-app.include_router(collection_api_router)
-app.include_router(task_view_router)
-app.include_router(file_api_router)
 
 # TODO: log request response to table
 # TODO: crontab to remind users for missed task
