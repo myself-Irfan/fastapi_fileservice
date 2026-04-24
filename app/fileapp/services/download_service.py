@@ -22,7 +22,7 @@ class FileDownloadService(FileService):
         except FileNotFoundException:
             raise
         except Exception as e:
-            logger.error("file path retrival failed", file_id=file_id, error=e, exc_info=True)
+            logger.error("file path retrieval failed", file_id=file_id, error=e, exc_info=True)
             raise FileOperationException(
                 message=f"error retrieving file path for file-{file_id}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR

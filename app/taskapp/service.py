@@ -24,7 +24,7 @@ class DocumentService:
                 user_id=user_id
             ).first()
         except (SQLAlchemyError, OperationalError) as db_err:
-            logger.error('document collection retrival failed', collection_id=collection_id, error=db_err, exc_info=True)
+            logger.error('document collection retrieval failed', collection_id=collection_id, error=db_err, exc_info=True)
             raise CollectionOperationException(
                 message=f'database error while retrieving collection-{collection_id}',
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR

@@ -25,7 +25,7 @@ class FileService:
                 is_active=True
             ).first()
         except (SQLAlchemyError, OperationalError) as db_err:
-            logger.error("file retrival failed", file_id=file_id, error=db_err, exc_info=True)
+            logger.error("file retrieval failed", file_id=file_id, error=db_err, exc_info=True)
             raise FileOperationException(
                 message=f'database error while retrieving file-{file_id}',
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -49,7 +49,7 @@ class FileService:
             files = query.all()
             return [FileRead.model_validate(f) for f in files]
         except SQLAlchemyError as sql_err:
-            logger.error("file retrival failed", error_type="database error", error=sql_err, exc_info=True)
+            logger.error("file retrieval failed", error_type="database error", error=sql_err, exc_info=True)
             raise
 
     def fetch_file_by_id(self, user_id: int, file_id: int) -> FileRead:
@@ -59,7 +59,7 @@ class FileService:
         except FileNotFoundException:
             raise
         except SQLAlchemyError as sql_err:
-            logger.error("file retrival failed", error_type="database error", file_id=file_id, error=sql_err, exc_info=True)
+            logger.error("file retrieval failed", error_type="database error", file_id=file_id, error=sql_err, exc_info=True)
             raise
 
     def delete_file(self, user_id: int, file_id: int) -> bool:

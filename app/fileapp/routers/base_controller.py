@@ -44,23 +44,23 @@ def get_all_files(
             user_id=current_user.id,
             document_id=document_id
         )
-        message = "files retrival success" if files else "no files to retrieve"
+        message = "files retrieval success" if files else "no files to retrieve"
 
         return FileListResponse(
             message=message,
             data=files or []
         )
     except SQLAlchemyError as sql_err:
-        logger.error("files retrival failed", error_type="database error", error=sql_err, exc_info=True)
+        logger.error("files retrieval failed", error_type="database error", error=sql_err, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="files retrival failed"
+            detail="files retrieval failed"
         )
     except Exception as err:
-        logger.error("files retrival failed", error_type="unexpected error", error=err, exc_info=True)
+        logger.error("files retrieval failed", error_type="unexpected error", error=err, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="files retrival failed"
+            detail="files retrieval failed"
         )
 
 
@@ -71,7 +71,7 @@ def get_all_files(
     description="retrieve a file by its ID",
     responses={
         200: {
-            "description": "file retrival success",
+            "description": "file retrieval success",
             "model": FileReadResponse
         },
         404: {"description": "file not found"},
@@ -91,22 +91,22 @@ def get_file(
         )
 
         return FileReadResponse(
-            message="file retrival successful",
+            message="file retrieval successful",
             data=file
         )
     except HTTPException:
         raise
     except SQLAlchemyError as sql_err:
-        logger.error("file retrival failed", error_type="database error", file_id=file_id, error=sql_err, exc_info=True)
+        logger.error("file retrieval failed", error_type="database error", file_id=file_id, error=sql_err, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="file retrival failed"
+            detail="file retrieval failed"
         ) from sql_err
     except Exception as err:
-        logger.error("file retrival failed", error_type="unexpected error", file_id=file_id, error=err, exc_info=True)
+        logger.error("file retrieval failed", error_type="unexpected error", file_id=file_id, error=err, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="file retrival failed"
+            detail="file retrieval failed"
         ) from err
 
 

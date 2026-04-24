@@ -44,7 +44,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: DbSessio
             )
         return user
     except SQLAlchemyError as err:
-        logger.error('user retrival failed', error_type='database error', error=str(err), exc_info=True)
+        logger.error('user retrieval failed', error_type='database error', error=str(err), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail='Database error'
