@@ -2,7 +2,7 @@ from fastapi.params import Depends
 from typing import Annotated
 
 from app.database.core import DbSession
-from app.taskapp.service import DocumentService
+from app.collectionapp.service import DocumentService
 
 
 def get_document_service(db: DbSession) -> DocumentService:

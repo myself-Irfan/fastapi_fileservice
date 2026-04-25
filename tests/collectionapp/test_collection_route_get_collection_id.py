@@ -3,11 +3,11 @@ from fastapi import status
 
 
 @pytest.mark.integration
-@pytest.mark.taskapp
+@pytest.mark.collectionapp
 class TestGetCollectionIdRoute:
     @pytest.fixture(autouse=True)
     def setup(self):
-        self._get_id_url = 'api/tasks/{collection_id}'
+        self._get_id_url = 'api/collection/{collection_id}'
 
     def test_get_collection_id_success(self, client, auth_headers, make_test_collection):
         url = self._get_id_url.format(collection_id=make_test_collection.id)

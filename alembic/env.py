@@ -5,7 +5,7 @@ from alembic import context
 from app.database.core import *
 from app.config import settings
 from app.userapp.entities import DocumentUser
-from app.taskapp.entities import DocumentCollection
+from app.collectionapp.entities import DocumentCollection
 from app.fileapp.entities import DocumentCollectionFile
 
 # alembic config obj

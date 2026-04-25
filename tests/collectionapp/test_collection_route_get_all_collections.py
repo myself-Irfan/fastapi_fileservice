@@ -5,11 +5,11 @@ from tests.collectionapp.conftest import document_service
 
 
 @pytest.mark.integration
-@pytest.mark.taskapp
+@pytest.mark.collectionapp
 class TestGetAllCollectionsRoute:
     @pytest.fixture(autouse=True)
     def setup(self):
-        self._get_all_url = 'api/tasks/'
+        self._get_all_url = 'api/collection/'
 
     def test_get_all_collections_success(self, client, auth_headers, make_test_collection):
         response = client.get(self._get_all_url, headers=auth_headers)

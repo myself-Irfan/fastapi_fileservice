@@ -5,7 +5,7 @@ from pathlib import Path
 
 router = APIRouter(
     prefix='',
-    tags=['Task Views']
+    tags=['Collection Views']
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -15,7 +15,7 @@ templates = Jinja2Templates(directory='templates')
 @router.get('/', response_class=HTMLResponse)
 def render_index(request: Request):
     """
-    render the main taskapp list page
+    render the main collection list page
     :param request:
     :return:
     """
@@ -25,7 +25,7 @@ def render_index(request: Request):
 @router.get('/create', response_class=HTMLResponse)
 def render_create(request: Request):
     """
-    render create taskapp page
+    render create collection page
     :param request:
     :return:
     """
@@ -35,7 +35,7 @@ def render_create(request: Request):
 @router.get('/edit/{task_id}', response_class=HTMLResponse)
 def render_edit(request: Request, task_id: int):
     """
-    render edit taskapp page
+    render edit collection page
     :param request:
     :return:
     """

@@ -2,13 +2,13 @@ import pytest
 from unittest.mock import Mock
 from sqlalchemy.exc import SQLAlchemyError,OperationalError
 
-from app.taskapp.exceptions import CollectionOperationException, CollectionNotFoundException
-from app.taskapp.models.create_document_model import DocumentCreateRequestModel
-from app.taskapp.models.update_document_model import DocumentUpdateRequestModel
+from app.collectionapp.exceptions import CollectionOperationException, CollectionNotFoundException
+from app.collectionapp.models.create_document_model import DocumentCreateRequestModel
+from app.collectionapp.models.update_document_model import DocumentUpdateRequestModel
 
 
 @pytest.mark.unit
-@pytest.mark.taskapp
+@pytest.mark.collectionapp
 class TestCollectionServiceCreate:
     def test_create_collection_success(self, mock_document_service, valid_collection_create):
         mock_document_service.db.refresh = Mock(side_effect=lambda obj: setattr(obj, 'id', 1))
@@ -54,7 +54,7 @@ class TestCollectionServiceCreate:
         mock_document_service.db.add.assert_called_once()
 
 @pytest.mark.unit
-@pytest.mark.taskapp
+@pytest.mark.collectionapp
 class TestCollectionServiceFetch:
     def test_fetch_all_collections_success(self, mock_document_service, multiple_collection_entity):
         mock_document_service.db.query.return_value.filter_by.return_value.all.return_value = multiple_collection_entity
@@ -108,7 +108,7 @@ class TestCollectionServiceFetch:
             )
 
 @pytest.mark.unit
-@pytest.mark.taskapp
+@pytest.mark.collectionapp
 class TestCollectionServiceUpdate:
     def test_update_collection_success(self, mock_document_service, sample_collection_entity, valid_collection_update):
         mock_document_service.db.query.return_value.filter_by.return_value.first.return_value = sample_collection_entity
@@ -167,7 +167,7 @@ class TestCollectionServiceUpdate:
         mock_document_service.db.rollback.assert_called_once()
 
 @pytest.mark.unit
-@pytest.mark.taskapp
+@pytest.mark.collectionapp
 class TestCollectionServiceDelete:
     def test_delete_collection_success(self, mock_document_service, sample_collection_entity):
         mock_document_service.db.query.return_value.filter_by.return_value.first.return_value = sample_collection_entity

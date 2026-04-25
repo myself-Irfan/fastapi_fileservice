@@ -12,8 +12,8 @@ def create_app() -> FastAPI:
     configure_logger()
 
     app = FastAPI(
-        title='Task Management App',
-        description='A taskapp management App with JWT',
+        title='File Service App',
+        description='A file management App with JWT',
         version='1.0.0',
         docs_url='/docs',
         redoc_url='/redoc'

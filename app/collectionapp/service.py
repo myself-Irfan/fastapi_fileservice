@@ -4,11 +4,11 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.logger import get_logger
-from app.taskapp.entities import DocumentCollection
-from app.taskapp.models.read_document_model import DocumentReadModel
-from app.taskapp.models.create_document_model import DocumentCreateRequestModel
-from app.taskapp.models.update_document_model import DocumentUpdateRequestModel
-from app.taskapp.exceptions import CollectionNotFoundException, CollectionOperationException
+from app.collectionapp.entities import DocumentCollection
+from app.collectionapp.models.read_document_model import DocumentReadModel
+from app.collectionapp.models.create_document_model import DocumentCreateRequestModel
+from app.collectionapp.models.update_document_model import DocumentUpdateRequestModel
+from app.collectionapp.exceptions import CollectionNotFoundException, CollectionOperationException
 
 logger = get_logger(__name__)
 

@@ -116,7 +116,7 @@ def mock_logger(mocker):
     """
     modules_to_patch = [
         'app.userapp.service.logger',
-        'app.taskapp.service.logger',
+        'app.collectionapp.service.logger',
         'app.fileapp.services.base_service.logger',
         'app.fileapp.services.download_service.logger',
         'app.fileapp.services.upload_service.logger',
@@ -135,7 +135,7 @@ def pytest_configure(config):
         "integration: Integration tests (slower, uses database)",
         "slow: Slow running tests",
         "userapp: User app tests",
-        "taskapp: Task app tests",
+        "collectionapp: Collection app tests",
         "fileapp: File app tests",
     ]
 

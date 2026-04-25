@@ -2,13 +2,13 @@ import pytest
 from pydantic import ValidationError
 from datetime import datetime
 
-from app.taskapp.models.create_document_model import DocumentCreateRequestModel
-from app.taskapp.models.update_document_model import DocumentUpdateRequestModel
-from app.taskapp.models.read_document_model import DocumentReadModel
+from app.collectionapp.models.create_document_model import DocumentCreateRequestModel
+from app.collectionapp.models.update_document_model import DocumentUpdateRequestModel
+from app.collectionapp.models.read_document_model import DocumentReadModel
 
 
 @pytest.mark.unit
-@pytest.mark.taskapp
+@pytest.mark.collectionapp
 class TestDocumentCreateModel:
     def test_valid_collection_create(self, valid_collection_data):
         document = DocumentCreateRequestModel(**valid_collection_data)
@@ -93,7 +93,7 @@ class TestDocumentCreateModel:
         assert any(error['loc'] == ('description',) for error in errors)
 
 @pytest.mark.unit
-@pytest.mark.taskapp
+@pytest.mark.collectionapp
 class TestDocumentUpdateModel:
     def test_valid_document_update(self, valid_collection_data):
         document = DocumentUpdateRequestModel(**valid_collection_data)
@@ -159,7 +159,7 @@ class TestDocumentUpdateModel:
         assert "Provide at least one field to update" in errors[0]["msg"]
 
 @pytest.mark.unit
-@pytest.mark.taskapp
+@pytest.mark.collectionapp
 class TestDocumentReadModelModel:
     def test_collection_read_from_dict(self, valid_collection_data):
         data = {

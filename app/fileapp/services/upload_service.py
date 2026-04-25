@@ -11,7 +11,7 @@ import mimetypes
 
 from app.config import settings
 from app.logger import get_logger
-from app.taskapp.entities import DocumentCollection
+from app.collectionapp.entities import DocumentCollection
 from app.fileapp.entities import DocumentCollectionFile
 from app.fileapp.exceptions import DocumentNotFoundException, InvalidFileTypeException, FileProcessingException, FileUploadException
 

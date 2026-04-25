@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
 
 from app.auth.dependencies import CurrentUser
-from app.taskapp.dependencies import DependsDocumentService
-from app.taskapp.models.read_document_model import DocumentListResponseModel
-from app.taskapp.exceptions import CollectionOperationException
+from app.collectionapp.dependencies import DependsDocumentService
+from app.collectionapp.models.read_document_model import DocumentListResponseModel
+from app.collectionapp.exceptions import CollectionOperationException
 
 router = APIRouter()
 

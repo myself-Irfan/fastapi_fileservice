@@ -1,14 +1,14 @@
 import pytest
 from faker import Faker
 
-from app.taskapp.exceptions import CollectionNotFoundException
-from app.taskapp.models.create_document_model import DocumentCreateRequestModel
-from app.taskapp.models.update_document_model import DocumentUpdateRequestModel
+from app.collectionapp.exceptions import CollectionNotFoundException
+from app.collectionapp.models.create_document_model import DocumentCreateRequestModel
+from app.collectionapp.models.update_document_model import DocumentUpdateRequestModel
 
 fake = Faker()
 
 @pytest.mark.unit
-@pytest.mark.taskapp
+@pytest.mark.collectionapp
 class TestCollectionServiceIntegration:
     def test_create_fetch_collection(self, document_service, valid_collection_create):
         document_id = document_service.create_document(

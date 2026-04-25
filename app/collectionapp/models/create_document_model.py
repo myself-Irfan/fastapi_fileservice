@@ -1,4 +1,4 @@
-from app.taskapp.models.base_document_model import DocumentBase, ApiResponse
+from app.collectionapp.models.base_document_model import DocumentBase, ApiResponse
 
 
 class DocumentCreateRequestModel(DocumentBase):

@@ -3,11 +3,11 @@ from fastapi import status
 
 
 @pytest.mark.integration
-@pytest.mark.taskapp
+@pytest.mark.collectionapp
 class TestCollectionFlowIntegration:
     @pytest.fixture(autouse=True)
     def setup(self):
-        self._base_url = 'api/tasks'
+        self._base_url = 'api/collection'
         self._query_param_url = self._base_url + '/{collection_id}'
 
     def test_complete_crud_flow(self, client, auth_headers, valid_collection_data):

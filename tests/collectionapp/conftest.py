@@ -5,10 +5,10 @@ from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user
 from tests.userapp.conftest import make_test_user
-from app.taskapp.entities import DocumentCollection
-from app.taskapp.service import DocumentService
-from app.taskapp.models.create_document_model import DocumentCreateRequestModel
-from app.taskapp.models.update_document_model import DocumentUpdateRequestModel
+from app.collectionapp.entities import DocumentCollection
+from app.collectionapp.service import DocumentService
+from app.collectionapp.models.create_document_model import DocumentCreateRequestModel
+from app.collectionapp.models.update_document_model import DocumentUpdateRequestModel
 
 
 fake = Faker()
