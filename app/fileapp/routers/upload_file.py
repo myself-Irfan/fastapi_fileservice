@@ -1,8 +1,6 @@
 from fastapi import status, UploadFile, File, Form, APIRouter, HTTPException
 from typing import Optional
 
-from sqlalchemy.exc import SQLAlchemyError
-
 from app.auth.dependencies import CurrentUser
 from app.fileapp.exceptions import FileUploadException
 from app.fileapp.model import FileReadResponse
@@ -56,22 +54,5 @@ def upload_file(
             document_id=document_id
         )
         return FileReadResponse(message="file upload successful")
-
     except FileUploadException as e:
-        logger.error("file upload error", error=str(e), status_code=e.status_code)
-        raise HTTPException(
-            status_code=e.status_code,
-            detail=e.message
-        )
-    except SQLAlchemyError as sql_err:
-        logger.error("database error", error=sql_err, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="database error occurred"
-        )
-    except Exception as err:
-        logger.error("unexpected error", error=err, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="unexpected error occurred"
-        )
+        raise HTTPException(status_code=e.status_code, detail=e.message)

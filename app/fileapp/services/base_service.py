@@ -50,24 +50,20 @@ class FileService:
             return [FileRead.model_validate(f) for f in files]
         except SQLAlchemyError as sql_err:
             logger.error("file retrieval failed", error_type="database error", error=sql_err, exc_info=True)
-            raise
+            raise FileOperationException(
+                message="database error while retrieving files",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            ) from sql_err
 
     def fetch_file_by_id(self, user_id: int, file_id: int) -> FileRead:
-        try:
-            file = self._get_file_instance(user_id, file_id)
-            return FileRead.model_validate(file)
-        except FileNotFoundException:
-            raise
-        except SQLAlchemyError as sql_err:
-            logger.error("file retrieval failed", error_type="database error", file_id=file_id, error=sql_err, exc_info=True)
-            raise
+        file = self._get_file_instance(user_id, file_id)
+        return FileRead.model_validate(file)
 
     def delete_file(self, user_id: int, file_id: int) -> bool:
         """
         soft delete a file.
         if no reference then delete from server
         """
-
         try:
             file = self._get_file_instance(user_id, file_id)
             file.is_active = False
@@ -98,9 +94,12 @@ class FileService:
                 logger.info("physical file preserved", active_refs=other_active_refs)
 
             return True
-        except FileNotFoundException:
+        except FileOperationException:
             raise
         except SQLAlchemyError as sql_err:
             self.db.rollback()
             logger.error("file deletion failed", error_type="database error", file_id=file_id, error=sql_err, exc_info=True)
-            raise sql_err
+            raise FileOperationException(
+                message=f"database error while deleting file-{file_id}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            ) from sql_err

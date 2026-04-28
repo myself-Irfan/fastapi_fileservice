@@ -141,7 +141,7 @@ class FileUploadService:
             if temp_path and os.path.exists(temp_path):
                 os.remove(temp_path)
             logger.error("file upload failed", error_type="database error", error=sql_err, exc_info=True)
-            raise
+            raise FileProcessingException("database error during file upload") from sql_err
         except FileUploadException:
             if temp_path and os.path.exists(temp_path):
                 os.remove(temp_path)

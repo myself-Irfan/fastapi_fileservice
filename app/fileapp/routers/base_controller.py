@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.exc import SQLAlchemyError
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from typing import Optional
 
+
 from app.auth.dependencies import CurrentUser
+from app.fileapp.exceptions import FileOperationException
 from app.fileapp.model import FileReadResponse, FileListResponse
 from app.logger import get_logger
 from app.fileapp.services.base_service import FileService
@@ -38,30 +39,15 @@ def get_all_files(
         document_id: Optional[int] = Query(None, description="filter by document id"),
         file_service: FileService = Depends(get_file_service)
 ) -> FileListResponse:
-
     try:
         files = file_service.fetch_files(
             user_id=current_user.id,
             document_id=document_id
         )
         message = "files retrieval success" if files else "no files to retrieve"
-
-        return FileListResponse(
-            message=message,
-            data=files or []
-        )
-    except SQLAlchemyError as sql_err:
-        logger.error("files retrieval failed", error_type="database error", error=sql_err, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="files retrieval failed"
-        )
-    except Exception as err:
-        logger.error("files retrieval failed", error_type="unexpected error", error=err, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="files retrieval failed"
-        )
+        return FileListResponse(message=message, data=files or [])
+    except FileOperationException as err:
+        raise HTTPException(status_code=err.status_code, detail=err.message)
 
 
 @router.get(
@@ -83,31 +69,14 @@ def get_file(
         current_user: CurrentUser,
         file_service: FileService = Depends(get_file_service)
 ) -> FileReadResponse:
-
     try:
         file = file_service.fetch_file_by_id(
             user_id=current_user.id,
             file_id=file_id
         )
-
-        return FileReadResponse(
-            message="file retrieval successful",
-            data=file
-        )
-    except HTTPException:
-        raise
-    except SQLAlchemyError as sql_err:
-        logger.error("file retrieval failed", error_type="database error", file_id=file_id, error=sql_err, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="file retrieval failed"
-        ) from sql_err
-    except Exception as err:
-        logger.error("file retrieval failed", error_type="unexpected error", file_id=file_id, error=err, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="file retrieval failed"
-        ) from err
+        return FileReadResponse(message="file retrieval successful", data=file)
+    except FileOperationException as err:
+        raise HTTPException(status_code=err.status_code, detail=err.message)
 
 
 @router.delete(
@@ -126,23 +95,10 @@ def delete_file(
         current_user: CurrentUser,
         file_service: FileService = Depends(get_file_service)
 ) -> None:
-
     try:
         file_service.delete_file(
             user_id=current_user.id,
             file_id=file_id
         )
-    except HTTPException:
-        raise
-    except SQLAlchemyError as sql_err:
-        logger.error("file deletion failed", error_type="database error", file_id=file_id, error=sql_err, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"file-{file_id} deletion failed"
-        )
-    except Exception as err:
-        logger.error("file deletion failed", error_type="unexpected error", file_id=file_id, error=err, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"file-{file_id} deletion failed"
-        )
+    except FileOperationException as err:
+        raise HTTPException(status_code=err.status_code, detail=err.message)
