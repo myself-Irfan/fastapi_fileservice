@@ -32,8 +32,8 @@ def render_create(request: Request):
     return templates.TemplateResponse('create.html', {'request': request})
 
 
-@router.get('/edit/{task_id}', response_class=HTMLResponse)
-def render_edit(request: Request, task_id: int):
+@router.get('/edit/{collection_id}', response_class=HTMLResponse)
+def render_edit(request: Request, collection_id: int):
     """
     render edit collection page
     :param request:
@@ -41,13 +41,13 @@ def render_edit(request: Request, task_id: int):
     """
     return templates.TemplateResponse('edit.html', {
         'request': request,
-        'task_id': task_id
+        'collection_id': collection_id
     })
 
 
-@router.get('/{task_id}', response_class=HTMLResponse)
-def render_details(request: Request, task_id: int):
+@router.get('/{collection_id}', response_class=HTMLResponse)
+def render_details(request: Request, collection_id: int):
     return templates.TemplateResponse('detail.html', {
         'request': request,
-        'task_id': task_id
+        'collection_id': collection_id
     })

@@ -1,101 +1,215 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const taskId = TASK_ID;
+    const collectionId = COLLECTION_ID;
 
-    class TaskDetail {
-        constructor(taskId) {
-            this.taskId = taskId;
-            this.deleteBtn = document.getElementById('delete-button');
-            this.editBtn = document.getElementById('edit-button');
-
-            this.loadTask();
-            this.setupEventListener();
+    class CollectionDetail {
+        constructor(id) {
+            this.id = id;
+            this.files = [];
+            this.init();
         }
 
-        async loadTask() {
-            UIUtils.showLoading();
+        async init() {
+            await Promise.all([this.loadCollection(), this.loadFiles()]);
+            this.setupEventListeners();
+        }
 
+        async loadCollection() {
+            UIUtils.showLoading();
             try {
-                const response = await apiClient.get(`/tasks/${this.taskId}`);
+                const response = await apiClient.get(`/collection/${this.id}`);
                 const data = await apiClient.handleResponse(response);
-
-                this.populateTaskDetails(data.data);
-                this.setupActionButtons();
-                UIUtils.showElement('task-container');
+                this.populateCollection(data.data);
+                UIUtils.showElement('collection-container');
             } catch (error) {
-                console.error('Failed to load task: ', error);
-                this.showError(error.message || 'Failed to load task');
+                console.error('Failed to load collection:', error);
+                this.showError(error.message || 'Failed to load collection.');
             } finally {
                 UIUtils.hideLoading();
             }
         }
 
-        populateTaskDetails(task) {
-            const elements = {
-                'task-title': task.title,
-                'task-description': task.description || 'No description provided',
-                'task-status': task.is_complete ? 'Complete' : 'Pending',
-                'task-due-date': UIUtils.formatDateWithOrdinal(task.due_date),
-                'task-created-at': UIUtils.formatDateTime(task.created_at),
+        populateCollection(col) {
+            const set = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
             };
+            set('collection-title', col.title);
+            set('collection-description', col.description || 'No description provided.');
+            set('collection-created', UIUtils.formatDateTime(col.created_at));
+            set('collection-updated', col.updated_at ? UIUtils.formatDateTime(col.updated_at) : '-');
+        }
 
-            Object.entries(elements).forEach(([id, value]) => {
-                const element = document.getElementById(id);
-                if (element) element.textContent = value;
+        async loadFiles() {
+            try {
+                const response = await apiClient.get(`/files/?document_id=${this.id}`);
+                const data = await apiClient.handleResponse(response);
+                this.files = data.data || [];
+                this.renderFiles();
+            } catch (error) {
+                console.error('Failed to load files:', error);
+            }
+        }
+
+        renderFiles() {
+            const filesList = document.getElementById('files-list');
+            const filesTable = document.getElementById('files-table');
+            const emptyFiles = document.getElementById('empty-files');
+
+            filesList.innerHTML = '';
+
+            if (!this.files.length) {
+                filesTable.classList.add('d-none');
+                emptyFiles.classList.remove('d-none');
+                return;
+            }
+
+            filesTable.classList.remove('d-none');
+            emptyFiles.classList.add('d-none');
+
+            this.files.forEach(file => filesList.appendChild(this.createFileRow(file)));
+        }
+
+        createFileRow(file) {
+            const tr = document.createElement('tr');
+            tr.dataset.id = file.id;
+            tr.innerHTML = `
+                <td>${this.escapeHtml(file.title)}</td>
+                <td><span class="badge bg-secondary">${this.escapeHtml(file.extension)}</span></td>
+                <td>${this.formatBytes(file.file_size)}</td>
+                <td class="d-none d-md-table-cell">${UIUtils.formatDateTime(file.created_at)}</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-success btn-download"
+                                data-id="${file.id}" data-title="${this.escapeHtml(file.title)}" title="Download">
+                            <i class="bi bi-download"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-delete-file"
+                                data-id="${file.id}" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            return tr;
+        }
+
+        formatBytes(bytes) {
+            if (bytes < 1024) return `${bytes} B`;
+            if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+            return `${(bytes / 1048576).toFixed(1)} MB`;
+        }
+
+        escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        setupEventListeners() {
+            document.getElementById('delete-button')?.addEventListener('click', () => this.handleDeleteCollection());
+            document.getElementById('upload-form')?.addEventListener('submit', (e) => this.handleUpload(e));
+
+            document.getElementById('files-list')?.addEventListener('click', (e) => {
+                const downloadBtn = e.target.closest('.btn-download');
+                const deleteBtn = e.target.closest('.btn-delete-file');
+                if (downloadBtn) this.handleDownload(downloadBtn.dataset.id, downloadBtn.dataset.title);
+                if (deleteBtn) this.handleDeleteFile(deleteBtn.dataset.id, deleteBtn);
             });
-
-            // set status color
-            const statusElement = document.getElementById('task-status');
-            if (statusElement) {
-                statusElement.className = task.is_complete ? 'text-success' : 'text-warning';
-            }
         }
 
-        setupActionButtons() {
-            if (this.editBtn) {
-                this.editBtn.href = `/edit/${this.taskId}`;
-            }
-        }
-
-        setupEventListener() {
-            if (this.deleteBtn) {
-                this.deleteBtn.addEventListener('click', () => this.handleDelete());
-            }
-        }
-
-        async handleDelete() {
-            if (!confirm('Are you sure you want to delete this task?')) return;
+        async handleDeleteCollection() {
+            if (!confirm('Delete this collection? Uploaded files will not be deleted.')) return;
 
             UIUtils.showLoading();
-
             try {
-                const response = await apiClient.delete(`/tasks/${this.taskId}`);
+                const response = await apiClient.delete(`/collection/${this.id}`);
                 await apiClient.handleResponse(response);
-                UIUtils.showAlert(
-                    alertContainer,
-                    'success',
-                    'Task delete operation successful'
-                );
-                window.location.href = '/'
+                window.location.href = '/';
             } catch (error) {
-                console.error('Failed to delete task: ', error);
-                this.showError(
-                    error.message || 'Failed to delete task'
-                );
+                this.showError(error.message || 'Failed to delete collection.');
             } finally {
                 UIUtils.hideLoading();
+            }
+        }
+
+        async handleUpload(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('file-input');
+            if (!fileInput.files.length) return;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('document_id', this.id);
+
+            const uploadBtn = document.getElementById('upload-btn');
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+
+            try {
+                const response = await apiClient.upload('/files/upload', formData);
+                await apiClient.handleResponse(response);
+
+                fileInput.value = '';
+                const modalEl = document.getElementById('uploadModal');
+                bootstrap.Modal.getInstance(modalEl)?.hide();
+
+                await this.loadFiles();
+                UIUtils.showAlert('alert-container', 'success', 'File uploaded successfully.');
+            } catch (error) {
+                UIUtils.showAlert('alert-container', 'danger', error.message || 'Upload failed.');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="bi bi-upload me-2"></i>Upload';
+            }
+        }
+
+        async handleDownload(fileId, filename) {
+            try {
+                const response = await apiClient.request(`/files/${fileId}/download`);
+                if (!response.ok) throw new Error('Download failed.');
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                alert(error.message || 'Download failed.');
+            }
+        }
+
+        async handleDeleteFile(fileId, btn) {
+            if (!confirm('Delete this file?')) return;
+
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+            try {
+                const response = await apiClient.delete(`/files/${fileId}`);
+                await apiClient.handleResponse(response);
+                this.files = this.files.filter(f => f.id != fileId);
+                this.renderFiles();
+            } catch (error) {
+                alert(error.message || 'Failed to delete file.');
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
             }
         }
 
         showError(message) {
             const errorBox = document.getElementById('error-message');
-            if (errorBox) {
-                errorBox.textContent = message;
-                UIUtils.showElement(errorBox);
-            } else {
-                alert(message);
+            const errorText = document.getElementById('error-text');
+            if (errorBox && errorText) {
+                errorText.textContent = message;
+                errorBox.classList.remove('d-none');
             }
         }
     }
 
-    new TaskDetail(taskId);
+    new CollectionDetail(collectionId);
 });

@@ -23,10 +23,10 @@ router = APIRouter()
 )
 def create_task(payload: DocumentCreateRequestModel, current_user: CurrentUser, document_service: DependsDocumentService) -> DocumentCreateResponseModel:
     try:
-        task_id = document_service.create_document(current_user.id, payload)
+        collection_id = document_service.create_document(current_user.id, payload)
         return DocumentCreateResponseModel(
             message='created successfully',
-            id=task_id
+            id=collection_id
         )
     except CollectionOperationException as err:
         raise HTTPException(

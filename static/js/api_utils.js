@@ -149,6 +149,37 @@ class ApiClient {
         })
     }
 
+    async upload(endpoint, formData) {
+        const url = `${this.baseUrl}${endpoint}`;
+        const headers = {};
+        if (this.tokens.access) {
+            headers['Authorization'] = `Bearer ${this.tokens.access}`;
+        }
+
+        try {
+            let response = await fetch(url, { method: 'POST', headers, body: formData });
+
+            if (response.status === 401 && this.tokens.refresh) {
+                const refreshed = await this.refreshAccessToken();
+                if (refreshed) {
+                    headers['Authorization'] = `Bearer ${this.tokens.access}`;
+                    response = await fetch(url, { method: 'POST', headers, body: formData });
+                }
+            }
+
+            if (response.status === 401) {
+                this.clearTokens();
+                window.location.href = '/login';
+                throw new Error('Unauthorized. Please log in again.');
+            }
+
+            return response;
+        } catch (err) {
+            console.error('Upload failed:', err);
+            throw err;
+        }
+    }
+
     async handleResponse(response) {
         if (!response.ok) {
             let errorMessage = 'Request failed';
@@ -161,6 +192,7 @@ class ApiClient {
             }
             throw new Error(errorMessage);
         }
+        if (response.status === 204) return null;
         return response.json();
     }
 

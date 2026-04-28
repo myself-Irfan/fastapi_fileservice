@@ -2,9 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('create-form');
     const titleInput = document.getElementById('title');
 
-    // set minimum date for due date input
-    UIUtils.setMinDate('due_date');
-
     class TaskCreator {
         constructor() {
             this.setupEventListener();
@@ -23,16 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!this.validateForm()) return;
 
-            UIUtils.setLoadingState(
-                'create-btn',
-                true,
-                'Creating...'
-            )
+            UIUtils.setLoadingState('create-btn', true, 'Creating...');
 
             const payload = this.getFormData();
 
             try {
-                const response = await apiClient.post('/tasks/', payload);
+                const response = await apiClient.post('/collection/', payload);
                 await apiClient.handleResponse(response);
 
                 UIUtils.showFeedback(
@@ -40,19 +33,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     'feedback-icon',
                     'feedback-text',
                     'success',
-                    'Task created successfully! Redirecting...'
+                    'Collection created successfully! Redirecting...'
                 );
 
                 form.reset();
                 UIUtils.redirectAfterDelay('/');
             } catch (error) {
-                console.error('Error creating task:', error);
+                console.error('Error creating collection:', error);
                 UIUtils.showFeedback(
                     'feedback-message',
                     'feedback-icon',
                     'feedback-text',
                     'danger',
-                    error.message || 'Error creating task. Please try again.'
+                    error.message || 'Error creating collection. Please try again.'
                 );
             } finally {
                 UIUtils.setLoadingState('create-btn', false);
@@ -63,8 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return {
                 title: document.getElementById('title').value.trim(),
                 description: document.getElementById('description').value.trim() || null,
-                due_date: document.getElementById('due_date').value || null,
-                is_complete: document.getElementById('is_complete').checked
             };
         }
 
@@ -72,24 +63,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = document.getElementById('title').value.trim();
 
             if (!title) {
-                UIUtils.showFeedback(
-                    'feedback-message',
-                    'feedback-icon',
-                    'feedback-text',
-                    'danger',
-                    'Title is required'
-                );
+                UIUtils.showFeedback('feedback-message', 'feedback-icon', 'feedback-text', 'danger', 'Title is required');
                 return false;
             }
 
-            if (title.length < 3 || title.length > 200) {
-                UIUtils.showFeedback(
-                    'feedback-message',
-                    'feedback-icon',
-                    'feedback-text',
-                    'danger',
-                    'Title must be between 3 to 200 characters'
-                );
+            if (title.length < 3 || title.length > 100) {
+                UIUtils.showFeedback('feedback-message', 'feedback-icon', 'feedback-text', 'danger', 'Title must be between 3 and 100 characters');
                 return false;
             }
 
@@ -97,24 +76,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         validateOnBlur() {
-            if (titleInput.value.trim()) {
-                this.validateForm();
-            }
+            if (titleInput.value.trim()) this.validateForm();
         }
 
         clearMessageOnInput() {
             const feedbackDiv = document.getElementById('feedback-message');
-            if (!feedbackDiv.classList.contains('d-none')) {
-                this.hideAllMessages();
-            }
+            if (!feedbackDiv.classList.contains('d-none')) this.hideAllMessages();
         }
 
         hideAllMessages() {
-            UIUtils.hideFeedback(
-                'feedback-message',
-                'feedback-icon',
-                'feedback-text'
-            );
+            UIUtils.hideFeedback('feedback-message', 'feedback-icon', 'feedback-text');
         }
     }
 

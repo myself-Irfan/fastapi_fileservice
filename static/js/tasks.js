@@ -2,106 +2,85 @@ document.addEventListener('DOMContentLoaded', () => {
     const taskTable = document.getElementById('task-table');
     const taskList = document.getElementById('task-list');
     const searchInput = document.getElementById('search-input');
-    const statusFilter = document.getElementById('status-filter');
 
-    let allTasks = []; // store task for filter
+    let allCollections = [];
 
-    class TaskManager {
-        async fetchTasks() {
+    class CollectionManager {
+        async fetchCollections() {
             UIUtils.showLoading();
 
             try {
-                const response = await apiClient.get('/tasks');
+                const response = await apiClient.get('/collection/');
                 const data = await apiClient.handleResponse(response);
 
-                allTasks = data.data || [];
+                allCollections = data.data || [];
                 this.hideAllFeedback();
-                this.renderTasks(allTasks);
+                this.renderCollections(allCollections);
             } catch (err) {
-                this.showError('Error loading tasks. Please try again later.');
+                this.showError('Error loading collections. Please try again later.');
                 UIUtils.hideElement('task-table');
                 UIUtils.hideElement('empty-state');
-                console.error('Fetch tasks error: ', err);
+                console.error('Fetch collections error: ', err);
             } finally {
                 UIUtils.hideLoading();
             }
         }
 
-        renderTasks(tasks) {
-            taskList.innerHTML = "";
+        renderCollections(collections) {
+            taskList.innerHTML = '';
 
-            if (!tasks.length) {
+            if (!collections.length) {
                 taskTable.classList.add('d-none');
-
                 const emptyState = document.getElementById('empty-state');
-                if (emptyState) {
-                    emptyState.classList.remove('d-none');
-                }
+                if (emptyState) emptyState.classList.remove('d-none');
                 return;
             }
 
             UIUtils.showElement('task-table');
             UIUtils.hideElement('empty-state');
 
-            tasks.forEach(task => {
-                const row = this.createTaskRow(task);
-                taskList.appendChild(row);
+            collections.forEach(col => {
+                taskList.appendChild(this.createRow(col));
             });
 
             this.attachDeleteHandlers();
         }
 
-        createTaskRow(task) {
+        createRow(col) {
             const row = document.createElement('tr');
 
-            // title col
             const titleTd = document.createElement('td');
-            titleTd.textContent = task.title;
+            titleTd.textContent = col.title;
             row.appendChild(titleTd);
 
-            // description
             const descTd = document.createElement('td');
             descTd.classList.add('d-none', 'd-md-table-cell');
-            descTd.textContent = task.description || '-';
+            descTd.textContent = col.description || '-';
             row.appendChild(descTd);
 
-            // status
-            const statusTd = document.createElement('td');
-            statusTd.textContent = task.is_complete ? 'Completed' : 'Pending';
-            statusTd.className = task.is_complete ? 'text-success' : 'text-warning';
-            row.appendChild(statusTd);
+            const createdTd = document.createElement('td');
+            createdTd.classList.add('d-none', 'd-md-table-cell');
+            createdTd.textContent = UIUtils.formatDateTime(col.created_at);
+            row.appendChild(createdTd);
 
-            // due date
-            const dueDateTd = document.createElement('td');
-            dueDateTd.classList.add('d-none', 'd-md-table-cell');
-            dueDateTd.textContent = UIUtils.formatDateWithOrdinal(task.due_date);
-            row.appendChild(dueDateTd);
-
-            // created at
-            const createTimeTd = document.createElement('td');
-            createTimeTd.classList.add('d-none', 'd-md-table-cell');
-            createTimeTd.textContent = UIUtils.formatDateTime(task.created_at);
-            row.appendChild(createTimeTd);
-
-            // action col
             const actionsTd = document.createElement('td');
-            actionsTd.innerHTML = this.getActionButtons(task.id);
+            actionsTd.innerHTML = this.getActionButtons(col.id);
             row.appendChild(actionsTd);
 
             return row;
         }
 
-        getActionButtons(taskId) {
+        getActionButtons(id) {
             return `
                 <div class="d-flex gap-2">
-                    <a href="/${taskId}" class="btn btn-sm btn-outline-primary" title="View">
+                    <a href="/${id}" class="btn btn-sm btn-outline-primary" title="View">
                         <i class="bi bi-eye"></i>
                     </a>
-                    <a href="/edit/${taskId}" class="btn btn-sm btn-outline-warning" title="Edit">
+                    <a href="/edit/${id}" class="btn btn-sm btn-outline-warning" title="Edit">
                         <i class="bi bi-pencil"></i>
                     </a>
                     <button class="btn btn-sm btn-outline-danger btn-delete-task"
-                            data-id="${taskId}" title="Delete">
+                            data-id="${id}" title="Delete">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
@@ -109,36 +88,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         attachDeleteHandlers() {
-            const deleteButtons = document.querySelectorAll('.btn-delete-task');
-            deleteButtons.forEach(button => {
+            document.querySelectorAll('.btn-delete-task').forEach(button => {
                 button.addEventListener('click', async () => {
-                    const taskId = button.getAttribute('data-id');
-                    if (!taskId) return;
+                    const id = button.getAttribute('data-id');
+                    if (!id) return;
 
-                    const confirmed = await UIUtils.confirmAction('Are you sure you wish to delete this task?');
+                    const confirmed = await UIUtils.confirmAction('Are you sure you want to delete this collection?');
                     if (!confirmed) return;
 
-                    await this.deleteTask(taskId, button);
+                    await this.deleteCollection(id, button);
                 });
             });
         }
 
-        async deleteTask(taskId, button) {
+        async deleteCollection(id, button) {
             const originalHTML = button.innerHTML;
 
             try {
                 button.disabled = true;
                 button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
 
-                const response = await apiClient.delete(`/tasks/${taskId}`);
+                const response = await apiClient.delete(`/collection/${id}`);
                 await apiClient.handleResponse(response);
 
-                allTasks = allTasks.filter( task => task.id != taskId)
+                allCollections = allCollections.filter(col => col.id != id);
                 this.applyFilters();
             } catch (error) {
                 console.error('Delete error:', error);
-                alert(error.message || 'Error deleting task');
-
+                alert(error.message || 'Error deleting collection');
                 button.disabled = false;
                 button.innerHTML = originalHTML;
             }
@@ -146,20 +123,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         applyFilters() {
             const searchText = searchInput.value.toLowerCase();
-            const statusValue = statusFilter.value;
 
-            const filtered = allTasks.filter(task => {
-                const matchesText = task.title.toLowerCase().includes(searchText) || (task.description && task.description.toLowerCase().includes(searchText));
-                const matchesStatus = statusValue === "" || (statusValue === 'pending' && !task.is_complete) || (statusValue === 'completed' && task.is_complete);
-                return matchesText && matchesStatus;
+            const filtered = allCollections.filter(col => {
+                return col.title.toLowerCase().includes(searchText) ||
+                    (col.description && col.description.toLowerCase().includes(searchText));
             });
-            this.renderTasks(filtered);
+
+            this.renderCollections(filtered);
         }
 
         showError(message) {
             const errorText = document.getElementById('error-text');
             const errorMessage = document.getElementById('error-message');
-
             if (errorText) errorText.textContent = message;
             if (errorMessage) errorMessage.classList.remove('d-none');
         }
@@ -167,20 +142,12 @@ document.addEventListener('DOMContentLoaded', () => {
         hideAllFeedback() {
             UIUtils.hideElement('error-message');
             const errorText = document.getElementById('error-text');
-
             if (errorText) errorText.textContent = '';
-
             UIUtils.hideElement('empty-state');
-            UIUtils.showElement('task-state');
         }
     }
 
-    // init task manager
-    const taskManager = new TaskManager();
-
-    // set up event listeners
-    searchInput.addEventListener('input', () => taskManager.applyFilters());
-    statusFilter.addEventListener('change', () => taskManager.applyFilters())
-
-    taskManager.fetchTasks();
+    const manager = new CollectionManager();
+    searchInput.addEventListener('input', () => manager.applyFilters());
+    manager.fetchCollections();
 });

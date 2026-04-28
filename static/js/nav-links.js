@@ -5,10 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (accessToken) {
         navLinks.innerHTML = `
             <li class="nav-item">
-                <a class="nav-link" href="/">All Tasks</a>
+                <a class="nav-link" href="/">Collections</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/create">Create Task</a>
+                <a class="nav-link" href="/create">New Collection</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#" id="logout-link">Logout</a>
