@@ -2,7 +2,6 @@ from pathlib import Path
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
-import hashlib
 import shutil
 from typing import Optional, Set
 import os
@@ -10,6 +9,7 @@ import magic
 import mimetypes
 
 from app.config import settings
+from app.utils import calculate_checksum
 from app.logger import get_logger
 from app.collectionapp.entities import DocumentCollection
 from app.fileapp.entities import DocumentCollectionFile
@@ -69,14 +69,6 @@ class FileUploadService:
 
         return real_mime_type
 
-    def __calculate_checksum(self, file_path: str) -> str:
-        sha256_hash = hashlib.sha256()
-
-        with open(file_path, "rb") as f:
-            for byte_block in iter(lambda : f.read(4096), b""):
-                sha256_hash.update(byte_block)
-        return sha256_hash.hexdigest()
-
     def upload_file(self, file: UploadFile, user_id: int, document_id: Optional[int] = None):
         temp_path = None
 
@@ -92,7 +84,7 @@ class FileUploadService:
             if detected_mime is None:
                 raise InvalidFileTypeException("file type mismatch or not allowed")
 
-            checksum = self.__calculate_checksum(str(temp_path))
+            checksum = calculate_checksum(str(temp_path))
             file_size = os.path.getsize(temp_path)
             extension = Path(file.filename).suffix.lower()
             mime_type = detected_mime
