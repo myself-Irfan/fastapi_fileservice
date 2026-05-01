@@ -89,6 +89,29 @@
     </div>
 </div>
 
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header" style="background-color: #6f42c1;">
+                <h5 class="modal-title text-truncate" id="previewModalLabel"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-3" id="preview-body">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-outline-success" id="preview-download-btn">
+                    <i class="bi bi-download me-1"></i>Download
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Upload Modal -->
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -124,4 +147,5 @@
     const COLLECTION_ID = "{{ collection_id }}";
 </script>
 <script src="/static/js/detail.js"></script>
+<script src="/static/js/file_utils.js"></script>
 {% endblock %}

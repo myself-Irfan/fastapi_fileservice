@@ -47,14 +47,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             const tr = document.createElement('tr');
             tr.dataset.id = file.id;
             tr.innerHTML = `
-                <td>${this.escapeHtml(file.title)}</td>
-                <td><span class="badge bg-secondary">${this.escapeHtml(file.extension)}</span></td>
-                <td>${this.formatBytes(file.file_size)}</td>
+                <td>${FileUtils.escapeHtml(file.title)}</td>
+                <td><span class="badge bg-secondary">${FileUtils.escapeHtml(file.extension)}</span></td>
+                <td>${FileUtils.formatBytes(file.file_size)}</td>
                 <td class="d-none d-md-table-cell">${UIUtils.formatDateTime(file.created_at)}</td>
                 <td>
                     <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-info btn-preview"
+                                data-id="${file.id}" data-title="${FileUtils.escapeHtml(file.title)}"
+                                data-mime="${FileUtils.escapeHtml(file.mime_type)}" title="Preview">
+                            <i class="bi bi-eye"></i>
+                        </button>
                         <button class="btn btn-sm btn-outline-success btn-download"
-                                data-id="${file.id}" data-title="${this.escapeHtml(file.title)}" title="Download">
+                                data-id="${file.id}" data-title="${FileUtils.escapeHtml(file.title)}" title="Download">
                             <i class="bi bi-download"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-danger btn-delete"
@@ -71,10 +76,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('upload-form')?.addEventListener('submit', e => this.handleUpload(e));
 
             document.getElementById('files-list')?.addEventListener('click', e => {
+                const previewBtn = e.target.closest('.btn-preview');
                 const downloadBtn = e.target.closest('.btn-download');
                 const deleteBtn = e.target.closest('.btn-delete');
-                if (downloadBtn) this.handleDownload(downloadBtn.dataset.id, downloadBtn.dataset.title);
+                if (previewBtn) FileUtils.handlePreview(previewBtn.dataset.id, previewBtn.dataset.title, previewBtn.dataset.mime);
+                if (downloadBtn) FileUtils.handleDownload(downloadBtn.dataset.id, downloadBtn.dataset.title);
                 if (deleteBtn) this.handleDelete(deleteBtn.dataset.id, deleteBtn);
+            });
+
+            // clean up blob URL when preview modal closes
+            document.getElementById('previewModal')?.addEventListener('hidden.bs.modal', () => {
+                const body = document.getElementById('preview-body');
+                body.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>';
+                document.getElementById('preview-download-btn').onclick = null;
+                if (FileUtils._previewUrl) {
+                    URL.revokeObjectURL(FileUtils._previewUrl);
+                    FileUtils._previewUrl = null;
+                }
             });
 
             document.getElementById('search-input')?.addEventListener('input', e => {
@@ -119,25 +137,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        async handleDownload(fileId, filename) {
-            try {
-                const response = await apiClient.request(`/files/${fileId}/download`);
-                if (!response.ok) throw new Error('Download failed.');
-
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            } catch (error) {
-                UIUtils.showAlert('alert-container', 'danger', error.message || 'Download failed.');
-            }
-        }
-
         async handleDelete(fileId, btn) {
             if (!confirm('Delete this file?')) return;
 
@@ -156,18 +155,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
             }
-        }
-
-        formatBytes(bytes) {
-            if (bytes < 1024) return `${bytes} B`;
-            if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
-            return `${(bytes / 1048576).toFixed(1)} MB`;
-        }
-
-        escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
         }
 
         showError(message) {
