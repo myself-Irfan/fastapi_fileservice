@@ -6,6 +6,7 @@ from app.userapp.routers import router as user_api_router
 from app.userapp.view import router as user_view_router
 from app.collectionapp.collection_views import router as collection_view_router
 from app.fileapp.routers.base_controller import router as file_api_router
+from app.fileapp.file_views import router as file_view_router
 
 
 def register_routers(app: FastAPI):
@@ -15,3 +16,4 @@ def register_routers(app: FastAPI):
     app.include_router(collection_api_router)
     app.include_router(collection_view_router)
     app.include_router(file_api_router)
+    app.include_router(file_view_router)

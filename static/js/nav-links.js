@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <a class="nav-link" href="/">Collections</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/create">New Collection</a>
+                <a class="nav-link" href="/files/">Files</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#" id="logout-link">Logout</a>
