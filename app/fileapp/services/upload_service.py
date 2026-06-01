@@ -1,19 +1,22 @@
-from pathlib import Path
-from fastapi import UploadFile
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
-import shutil
-from typing import Optional, Set
-import os
-import magic
+import dataclasses
 import mimetypes
+import os
+import shutil
+from pathlib import Path
+from typing import BinaryIO, Optional, Set, cast
+
+import magic
+from fastapi import UploadFile
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.utils import calculate_checksum
 from app.logger import get_logger
-from app.collectionapp.entities import DocumentCollection
 from app.fileapp.entities import DocumentCollectionFile
 from app.fileapp.exceptions import DocumentNotFoundException, InvalidFileTypeException, FileProcessingException, FileUploadException
+from app.fileapp.value_objects import FileMetadata
+from app.collectionapp.entities import DocumentCollection
 
 logger = get_logger(__name__)
 
@@ -42,7 +45,7 @@ class FileUploadService:
         temp_path = self.upload_dir / temp_filename
 
         with open(temp_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+            shutil.copyfileobj(cast(BinaryIO, file.file), buffer)
 
         return temp_path
 
@@ -51,31 +54,57 @@ class FileUploadService:
         real_mime_type = magic.from_file(str(temp_path), mime=True)
 
         if extension not in self.allowed_extensions:
-            logger.warning(
-                "File type not allowed",
-                filename=file_name
-            )
+            logger.warning("file type not allowed", filename=file_name)
             return None
 
         expected_mime = self.extension_to_mime.get(extension)
         if real_mime_type != expected_mime:
             logger.warning(
-                'File rejected. File type does not match extension',
+                "file rejected — type does not match extension",
                 filename=file_name,
                 expected_type=expected_mime,
-                detected_type=real_mime_type
+                detected_type=real_mime_type,
             )
             return None
 
         return real_mime_type
 
+    def __resolve_file_path(self, checksum: str, extension: str, temp_path: Path) -> str:
+        existing = (
+            self.db.query(DocumentCollectionFile)
+            .filter_by(checksum=checksum)
+            .first()
+        )
+        if existing:
+            logger.info("file deduplicated", checksum=checksum[:8], existing_file_id=existing.id)
+            os.remove(temp_path)
+            return str(existing.file_path)
+
+        final_path = str(self.upload_dir / f"{checksum}{extension}")
+        shutil.move(str(temp_path), final_path)
+        logger.info("new file saved", path=final_path)
+        return final_path
+
+    def __build_metadata(self, file: UploadFile, temp_path: Path, detected_mime: str) -> FileMetadata:
+        extension = Path(file.filename).suffix.lower()
+        checksum = calculate_checksum(str(temp_path))
+        file_size = os.path.getsize(temp_path)  # measure before temp is moved or deleted
+        file_path = self.__resolve_file_path(checksum, extension, temp_path)
+
+        return FileMetadata(
+            title=file.filename,
+            file_path=file_path,
+            file_size=file_size,
+            mime_type=detected_mime,
+            extension=extension,
+            checksum=checksum,
+        )
+
     def upload_file(self, file: UploadFile, user_id: int, document_id: Optional[int] = None):
         temp_path = None
 
-        if document_id is not None:
-            document_exists: bool = self.__check_document_collection_exist(document_id)
-            if not document_exists:
-                raise DocumentNotFoundException(f"document_collection-{document_id} does not exist")
+        if document_id is not None and not self.__check_document_collection_exist(document_id):
+            raise DocumentNotFoundException(f"document_collection-{document_id} does not exist")
 
         try:
             temp_path = self.__save_temp_file(file)
@@ -84,43 +113,13 @@ class FileUploadService:
             if detected_mime is None:
                 raise InvalidFileTypeException("file type mismatch or not allowed")
 
-            checksum = calculate_checksum(str(temp_path))
-            file_size = os.path.getsize(temp_path)
-            extension = Path(file.filename).suffix.lower()
-            mime_type = detected_mime
-            file_title = file.filename
-
-            existing_file = (
-                self.db.query(DocumentCollectionFile)
-                .filter_by(checksum=checksum)
-                .first()
-            )
-
-            if existing_file:
-                logger.info(
-                    "file-deduplicated",
-                    checksum=checksum[:8],
-                    existing_file_id=existing_file.id
-                )
-                os.remove(temp_path)
-                temp_path = None
-                final_path=existing_file.file_path
-            else:
-                final_filename = f"{checksum}{extension}"
-                final_path = str(self.upload_dir/final_filename)
-                shutil.move(str(temp_path), final_path)
-                temp_path = None
-                logger.info("new file saved", path=final_path)
+            metadata = self.__build_metadata(file, temp_path, detected_mime)
+            temp_path = None  # temp consumed inside __build_metadata
 
             new_file = DocumentCollectionFile(
-                title=file_title,
-                file_path=final_path,
-                file_size=file_size,
-                mime_type=mime_type,
-                extension=extension,
-                checksum=checksum,
+                **dataclasses.asdict(metadata),
                 user_id=user_id,
-                document_id=document_id
+                document_id=document_id,
             )
             self.db.add(new_file)
             self.db.commit()

@@ -65,7 +65,7 @@ class DocumentService:
             self.db.rollback()
             logger.error("document collection creation failed", error=db_err, exc_info=True)
             raise CollectionOperationException(
-                message=f"Database error while creating task",
+                message=f"Database error while creating collection",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             ) from db_err
 
