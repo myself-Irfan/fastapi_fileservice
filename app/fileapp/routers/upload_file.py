@@ -2,7 +2,6 @@ from fastapi import status, UploadFile, File, Form, APIRouter, HTTPException
 from typing import Optional
 
 from app.auth.dependencies import CurrentUser
-from app.fileapp.exceptions import FileUploadException
 from app.fileapp.model import FileReadResponse
 from app.fileapp.dependencies import DependsFileUploadService
 from app.logger import get_logger
@@ -47,12 +46,9 @@ def upload_file(
             detail="no filename provided"
         )
 
-    try:
-        file_upload_service.upload_file(
-            file=file,
-            user_id=current_user.id,
-            document_id=document_id
-        )
-        return FileReadResponse(message="file upload successful")
-    except FileUploadException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.message)
+    file_upload_service.upload_file(
+        file=file,
+        user_id=current_user.id,
+        document_id=document_id
+    )
+    return FileReadResponse(message="file upload successful")

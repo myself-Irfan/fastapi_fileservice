@@ -1,10 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from app.auth.dependencies import CurrentUser
 from app.collectionapp.models.read_document_model import DocumentResponseModel
 from app.collectionapp.models.update_document_model import DocumentUpdateRequestModel
 from app.collectionapp.dependencies import DependsDocumentService
-from app.collectionapp.exceptions import CollectionOperationException
 
 router = APIRouter()
 
@@ -23,11 +22,5 @@ router = APIRouter()
     }
 )
 def update_collection(document_id: int, payload: DocumentUpdateRequestModel, current_user: CurrentUser, document_service: DependsDocumentService) -> DocumentResponseModel:
-    try:
-        document_service.update_document(user_id=current_user.id, document_id=document_id, doc_col_data=payload)
-        return DocumentResponseModel(message=f'DocumentCollection-{document_id} updated successfully')
-    except CollectionOperationException as err:
-        raise HTTPException(
-            status_code=err.status_code,
-            detail=err.message
-        ) from err
+    document_service.update_document(user_id=current_user.id, document_id=document_id, doc_col_data=payload)
+    return DocumentResponseModel(message=f'DocumentCollection-{document_id} updated successfully')

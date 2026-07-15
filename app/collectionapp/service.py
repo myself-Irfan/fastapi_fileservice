@@ -80,9 +80,6 @@ class DocumentService:
             self.db.refresh(document)
 
             logger.info("document collection update successful", collection_id=document.id)
-        except CollectionNotFoundException:
-            logger.warning("collection update failed - not found", collection_id=document_id)
-            raise CollectionNotFoundException(f'update failed: collection-{document_id} not found')
         except (SQLAlchemyError, OperationalError) as db_err:
             self.db.rollback()
             logger.error("document update failed", error=db_err, document_id=document_id, exc_info=True)
@@ -97,9 +94,6 @@ class DocumentService:
             self.db.delete(collection)
             self.db.commit()
             logger.info("document collection deletion successful", collection_id=collection_id)
-        except CollectionNotFoundException:
-            logger.warning("collection deletion failed", error="collection not found", collection_id=collection_id)
-            raise CollectionNotFoundException(f'deletion failed: collection-{collection_id} not found')
         except (SQLAlchemyError, OperationalError) as db_err:
             self.db.rollback()
             logger.error("collection deletion failed", collection_id=collection_id, error=db_err, exc_info=True)

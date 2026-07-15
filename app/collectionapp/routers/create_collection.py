@@ -1,9 +1,8 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 
 from app.auth.dependencies import CurrentUser
 from app.collectionapp.dependencies import DependsDocumentService
 from app.collectionapp.models.create_document_model import DocumentCreateRequestModel, DocumentCreateResponseModel
-from app.collectionapp.exceptions import CollectionOperationException
 
 router = APIRouter()
 
@@ -22,14 +21,8 @@ router = APIRouter()
     }
 )
 def create_task(payload: DocumentCreateRequestModel, current_user: CurrentUser, document_service: DependsDocumentService) -> DocumentCreateResponseModel:
-    try:
-        collection_id = document_service.create_document(current_user.id, payload)
-        return DocumentCreateResponseModel(
-            message='created successfully',
-            id=collection_id
-        )
-    except CollectionOperationException as err:
-        raise HTTPException(
-            status_code=err.status_code,
-            detail=err.message
-        ) from err
+    collection_id = document_service.create_document(current_user.id, payload)
+    return DocumentCreateResponseModel(
+        message='created successfully',
+        id=collection_id
+    )

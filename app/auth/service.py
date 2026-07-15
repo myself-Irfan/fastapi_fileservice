@@ -3,11 +3,11 @@ from argon2.exceptions import VerifyMismatchError, InvalidHashError, HashingErro
 from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 from typing import Optional
-from fastapi import HTTPException, status
 
 from app.config import settings
 from app.database.core import DbSession
 from app.userapp.entities import DocumentUser
+from app.auth.exceptions import AuthenticationError
 from app.logger import get_logger
 
 _pwd_hasher = PasswordHasher(
@@ -19,10 +19,6 @@ _pwd_hasher = PasswordHasher(
 )
 
 logger = get_logger(__name__)
-
-class AuthenticationError(Exception):
-    """Custom exception for authentication errors."""
-    pass
 
 
 class AuthenticationService:
@@ -216,9 +212,6 @@ class AuthenticationService:
 
         user = db.get(DocumentUser, user_id)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f'User-{user_id} not found',
-            )
+            raise AuthenticationError(f'User-{user_id} not found')
 
         return cls.generate_access_token(user_id)

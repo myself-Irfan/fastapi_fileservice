@@ -1,13 +1,12 @@
 from fastapi import status
 
-class UserOperationException(Exception):
+from app.exceptions import AppException
+
+class UserOperationException(AppException):
     """
     base exception for user op (registration, login, auth)
     """
-    def __init__(self, message: str, status_code: int = status.HTTP_400_BAD_REQUEST):
-        self.message: str = message
-        self.status_code: int = status_code
-        super().__init__(self.message)
+    pass
 
 class UserDuplicateException(UserOperationException):
     """

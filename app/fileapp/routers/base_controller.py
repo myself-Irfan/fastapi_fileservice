@@ -1,11 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from typing import Optional
 
 
 from app.auth.dependencies import CurrentUser
-from app.fileapp.exceptions import FileOperationException
 from app.fileapp.model import FileReadResponse, FileListResponse
-from app.logger import get_logger
 from app.fileapp.services.base_service import FileService
 from app.fileapp.routers.upload_file import router as upload_router
 from app.fileapp.routers.download_file import router as download_router
@@ -17,8 +15,6 @@ router = APIRouter(
 )
 router.include_router(upload_router)
 router.include_router(download_router)
-
-logger = get_logger(__name__)
 
 
 @router.get(
@@ -39,15 +35,12 @@ def get_all_files(
         document_id: Optional[int] = Query(None, description="filter by document id"),
         file_service: FileService = Depends(get_file_service)
 ) -> FileListResponse:
-    try:
-        files = file_service.fetch_files(
-            user_id=current_user.id,
-            document_id=document_id
-        )
-        message = "files retrieval success" if files else "no files to retrieve"
-        return FileListResponse(message=message, data=files or [])
-    except FileOperationException as err:
-        raise HTTPException(status_code=err.status_code, detail=err.message)
+    files = file_service.fetch_files(
+        user_id=current_user.id,
+        document_id=document_id
+    )
+    message = "files retrieval success" if files else "no files to retrieve"
+    return FileListResponse(message=message, data=files or [])
 
 
 @router.get(
@@ -69,14 +62,11 @@ def get_file(
         current_user: CurrentUser,
         file_service: FileService = Depends(get_file_service)
 ) -> FileReadResponse:
-    try:
-        file = file_service.fetch_file_by_id(
-            user_id=current_user.id,
-            file_id=file_id
-        )
-        return FileReadResponse(message="file retrieval successful", data=file)
-    except FileOperationException as err:
-        raise HTTPException(status_code=err.status_code, detail=err.message)
+    file = file_service.fetch_file_by_id(
+        user_id=current_user.id,
+        file_id=file_id
+    )
+    return FileReadResponse(message="file retrieval successful", data=file)
 
 
 @router.delete(
@@ -95,10 +85,7 @@ def delete_file(
         current_user: CurrentUser,
         file_service: FileService = Depends(get_file_service)
 ) -> None:
-    try:
-        file_service.delete_file(
-            user_id=current_user.id,
-            file_id=file_id
-        )
-    except FileOperationException as err:
-        raise HTTPException(status_code=err.status_code, detail=err.message)
+    file_service.delete_file(
+        user_id=current_user.id,
+        file_id=file_id
+    )

@@ -1,14 +1,13 @@
 from fastapi import status
 
+from app.exceptions import AppException
 
-class FileOperationException(Exception):
+
+class FileOperationException(AppException):
     """
     base exception for file operations (read, download, delete)
     """
-    def __init__(self, message: str, status_code: int = status.HTTP_400_BAD_REQUEST):
-        self.message: str = message
-        self.status_code: int = status_code
-        super().__init__(self.message)
+    pass
 
 class FileNotFoundException(FileOperationException):
     """
@@ -24,14 +23,11 @@ class FileDeletionException(FileOperationException):
     def __init__(self, message: str):
         super().__init__(message, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class FileUploadException(Exception):
+class FileUploadException(AppException):
     """
     base exception class for file upload operations
     """
-    def __init__(self, message: str, status_code: int = status.HTTP_400_BAD_REQUEST):
-        self.message: str = message
-        self.status_code: int = status_code
-        super().__init__(self.message)
+    pass
 
 class DocumentNotFoundException(FileUploadException):
     """

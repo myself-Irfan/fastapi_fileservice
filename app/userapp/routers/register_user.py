@@ -1,15 +1,11 @@
-from fastapi import APIRouter, status, Request, HTTPException
+from fastapi import APIRouter, status, Request
 
 from app.rate_limiter import limiter
 from app.config import settings
 from app.userapp.dependencies import DependsUserService
-from app.logger import get_logger
 from app.userapp.model import UserRegister, ApiResponse
-from app.userapp.exceptions import UserOperationException
 
 router = APIRouter()
-
-logger = get_logger(__name__)
 
 
 @router.post(
@@ -29,11 +25,7 @@ logger = get_logger(__name__)
 )
 @limiter.limit(f"{settings.register_limit_per_hour}/hour")
 def register_user(request: Request, payload: UserRegister, user_service: DependsUserService) -> ApiResponse:
-    try:
-        user = user_service.create_registered_user(payload)
-        return ApiResponse(
-            message=f'User-{user.id} created successfully',
-        )
-    except UserOperationException as e:
-        logger.error(f'User registration operation failed: {e.message}')
-        raise HTTPException(status_code=e.status_code, detail=e.message)
+    user = user_service.create_registered_user(payload)
+    return ApiResponse(
+        message=f'User-{user.id} created successfully',
+    )

@@ -1,9 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from app.auth.dependencies import CurrentUser
 from app.collectionapp.dependencies import DependsDocumentService
 from app.collectionapp.models.read_document_model import DocumentListResponseModel
-from app.collectionapp.exceptions import CollectionOperationException
 
 router = APIRouter()
 
@@ -22,16 +21,10 @@ router = APIRouter()
     }
 )
 def get_all_collections(current_user: CurrentUser, document_service: DependsDocumentService) -> DocumentListResponseModel:
-    try:
-        collections = document_service.fetch_documents(user_id=current_user.id)
-        message = "Collections retrieved successfully" if collections else f"No collection found for {current_user.name}"
+    collections = document_service.fetch_documents(user_id=current_user.id)
+    message = "Collections retrieved successfully" if collections else f"No collection found for {current_user.name}"
 
-        return DocumentListResponseModel(
-            message=message,
-            data=collections or []
-        )
-    except CollectionOperationException as err:
-        raise HTTPException(
-            status_code=err.status_code,
-            detail=err.message
-        ) from err
+    return DocumentListResponseModel(
+        message=message,
+        data=collections or []
+    )

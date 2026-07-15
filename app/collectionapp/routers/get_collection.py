@@ -1,13 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from app.auth.dependencies import CurrentUser
 from app.collectionapp.dependencies import DependsDocumentService
 from app.collectionapp.models.read_document_model import DocumentResponseModel
-from app.logger import get_logger
-from app.collectionapp.exceptions import CollectionOperationException
 
 router = APIRouter()
-logger = get_logger()
 
 
 @router.get(
@@ -25,14 +22,8 @@ logger = get_logger()
     }
 )
 def get_collection(document_id: int, current_user: CurrentUser, document_service: DependsDocumentService) -> DocumentResponseModel:
-    try:
-        task = document_service.fetch_document_by_id(document_id=document_id, user_id=current_user.id)
-        return DocumentResponseModel(
-            message='Collection retrieved successfully',
-            data=task
-        )
-    except CollectionOperationException as err:
-        raise HTTPException(
-            status_code=err.status_code,
-            detail=err.message
-        ) from err
+    task = document_service.fetch_document_by_id(document_id=document_id, user_id=current_user.id)
+    return DocumentResponseModel(
+        message='Collection retrieved successfully',
+        data=task
+    )

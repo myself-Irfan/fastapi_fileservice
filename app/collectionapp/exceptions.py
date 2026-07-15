@@ -1,11 +1,10 @@
 from fastapi import status
 
+from app.exceptions import AppException
 
-class CollectionOperationException(Exception):
-    def __init__(self, message: str, status_code: int = status.HTTP_400_BAD_REQUEST):
-        self.message: str = message
-        self.status_code: int = status_code
-        super().__init__(self.message)
+
+class CollectionOperationException(AppException):
+    pass
 
 class CollectionNotFoundException(CollectionOperationException):
     def __init__(self, message: str):

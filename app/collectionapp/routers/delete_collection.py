@@ -1,12 +1,9 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 
 from app.auth.dependencies import CurrentUser
 from app.collectionapp.dependencies import DependsDocumentService
-from app.collectionapp.exceptions import CollectionOperationException
-from app.logger import get_logger
 
 router = APIRouter()
-logger = get_logger(__name__)
 
 
 @router.delete(
@@ -21,10 +18,4 @@ logger = get_logger(__name__)
     }
 )
 def delete_collection(document_id: int, current_user: CurrentUser, document_service: DependsDocumentService) -> None:
-    try:
-        document_service.delete_collection(current_user.id, document_id)
-    except CollectionOperationException as err:
-        raise HTTPException(
-            status_code=err.status_code,
-            detail=err.message
-        ) from err
+    document_service.delete_collection(current_user.id, document_id)
