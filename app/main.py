@@ -48,4 +48,3 @@ app = create_app()
 # TODO: add file count for doc_collection
 # TODO: should we add user_id to DocumentRead?
 # TODO: update test to register class-wise and cleanup instead of test-wise | rewrite whole test
-# TODO: table configuration -> allowed type and size

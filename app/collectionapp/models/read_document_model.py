@@ -2,7 +2,8 @@ from datetime import datetime
 from typing import Optional, List
 from pydantic import Field, ConfigDict
 
-from app.collectionapp.models.base_document_model import DocumentBase, ApiResponse
+from app.collectionapp.models.base_document_model import DocumentBase
+from app.models import ApiResponse
 
 
 class DocumentReadModel(DocumentBase):

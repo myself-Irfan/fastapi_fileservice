@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+from app.models import ApiResponse
 
 
 class LoginTokenData(BaseModel):
@@ -8,7 +10,5 @@ class LoginTokenData(BaseModel):
 class RefreshTokenData(BaseModel):
     access_token: str
 
-class RefreshTokenResponse(BaseModel):
-    message: str = Field(..., description='Response message')
-
+class RefreshTokenResponse(ApiResponse):
     data: RefreshTokenData

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 from app.auth.model import LoginTokenData
-from app.collectionapp.models.base_document_model import ApiResponse
+from app.models import ApiResponse
 
 
 class UserRegister(BaseModel):

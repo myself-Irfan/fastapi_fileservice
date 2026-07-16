@@ -1,4 +1,5 @@
-from app.collectionapp.models.base_document_model import DocumentBase, ApiResponse
+from app.collectionapp.models.base_document_model import DocumentBase
+from app.models import ApiResponse
 
 
 class DocumentCreateRequestModel(DocumentBase):
