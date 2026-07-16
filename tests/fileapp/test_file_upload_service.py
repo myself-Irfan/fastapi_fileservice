@@ -13,10 +13,7 @@ from app.fileapp.services.upload_service import FileUploadService
 
 @pytest.fixture
 def upload_service(mock_db_session, tmp_path, mocker):
-    mock_settings = Mock()
-    mock_settings.upload_dir = tmp_path
-    mock_settings.allowed_extensions_set = {".pdf", ".txt", ".png", ".jpg", ".csv"}
-    mocker.patch("app.fileapp.services.upload_service.settings", mock_settings)
+    mocker.patch("app.fileapp.services.upload_service.settings.upload_dir", tmp_path)
     return FileUploadService(db=mock_db_session)
 
 

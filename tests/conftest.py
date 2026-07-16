@@ -83,14 +83,16 @@ def mock_db_session():
 @pytest.fixture
 def mock_auth_service(mocker):
     """
-    mock AuthenticationService for testing without real hashing or tokens
+    mock auth-related calls used by UserService for testing without real hashing or tokens
     """
     auth_mock = mocker.patch('app.userapp.service.AuthenticationService')
-
-    auth_mock.hash_pwd.return_value = 'hashed_password_123'
-    auth_mock.verify_pwd.return_value = (True, False)
     auth_mock.generate_access_token.return_value = 'mock_access_token'
     auth_mock.generate_refresh_token.return_value = 'mock_refresh_token'
+
+    mocker.patch('app.userapp.service.hash_pwd', auth_mock.hash_pwd)
+    mocker.patch('app.userapp.service.verify_pwd', auth_mock.verify_pwd)
+    auth_mock.hash_pwd.return_value = 'hashed_password_123'
+    auth_mock.verify_pwd.return_value = (True, False)
 
     return auth_mock
 

@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.userapp.entities import DocumentUser
 from app.auth.service import AuthenticationService
+from app.auth.hashing import hash_pwd, verify_pwd
 from app.logger import get_logger
 from app.userapp.model import UserRegister
 from app.userapp.exceptions import DatabaseOperationException, UserDuplicateException, UserCreationException, \
@@ -41,7 +42,7 @@ class UserService:
             logger.warning("user already exists", email=user_data.email)
             raise UserDuplicateException(f'user with email-{user_data.email} already exists')
 
-        hashed_pwd = AuthenticationService.hash_pwd(user_data.password)
+        hashed_pwd = hash_pwd(user_data.password)
 
         try:
             new_user = DocumentUser(
@@ -68,7 +69,7 @@ class UserService:
             logger.warning("user not registered", email=email)
             raise UserNotFoundException(f"user-{email} not registered")
 
-        is_valid, needs_rehash = AuthenticationService.verify_pwd(
+        is_valid, needs_rehash = verify_pwd(
             user.hashed_pwd,
             password
         )
@@ -78,7 +79,7 @@ class UserService:
 
         if needs_rehash:
             logger.info(f"Rehashing password for user {user.id}")
-            user.hashed_pwd = AuthenticationService.hash_pwd(password)
+            user.hashed_pwd = hash_pwd(password)
             self.db.commit()
             self.db.refresh(user)
 

@@ -1,5 +1,4 @@
 import dataclasses
-import mimetypes
 import os
 import shutil
 from pathlib import Path
@@ -15,6 +14,7 @@ from app.utils import calculate_checksum
 from app.logger import get_logger
 from app.fileapp.entities import DocumentCollectionFile
 from app.fileapp.exceptions import DocumentNotFoundException, InvalidFileTypeException, FileProcessingException, FileUploadException
+from app.fileapp.mime_types import EXTENSION_TO_MIME
 from app.fileapp.value_objects import FileMetadata
 from app.collectionapp.entities import DocumentCollection
 
@@ -28,14 +28,7 @@ class FileUploadService:
         self.upload_dir.mkdir(exist_ok=True)
 
         self.allowed_extensions: Set[str] = settings.allowed_extensions_set
-
-        self.extension_to_mime = {}
-        for ext in self.allowed_extensions:
-            mime_type, _ = mimetypes.guess_type(f"file{ext}")
-            if mime_type:
-                self.extension_to_mime[ext] = mime_type
-
-        self.allowed_mime_types = set(self.extension_to_mime.values())
+        self.extension_to_mime = EXTENSION_TO_MIME
 
     def __check_document_collection_exist(self, document_id: int) -> bool:
         return self.db.get(DocumentCollection, document_id) is not None
