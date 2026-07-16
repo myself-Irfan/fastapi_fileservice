@@ -47,6 +47,8 @@ The app is split into four domain modules under `app/`:
 
 Each module follows a strict layer structure: **Router → Service → Entity → Model**, with domain-specific exceptions and FastAPI `Depends()` wiring.
 
+All domain exceptions share a common `AppException` base (`app/exceptions.py`) and are converted to HTTP responses by a single global exception handler (`app/exception_handler.py`) — routers never catch and translate errors themselves.
+
 ---
 
 ## API Overview
@@ -55,7 +57,7 @@ Each module follows a strict layer structure: **Router → Service → Entity �
 |--------|------|-------------|
 | `POST` | `/api/users/register` | Register a new user |
 | `POST` | `/api/users/login` | Login and receive tokens |
-| `POST` | `/api/auth/refresh` | Refresh access token |
+| `POST` | `/api/auth/refresh-token` | Refresh access token |
 | `GET` | `/api/collection/` | List all collections |
 | `POST` | `/api/collection/` | Create a collection |
 | `GET` | `/api/collection/{id}` | Get a collection |

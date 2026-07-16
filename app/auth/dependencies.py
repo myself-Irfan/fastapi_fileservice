@@ -49,14 +49,6 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: DbSessio
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail='Database error'
         ) from err
-    except HTTPException:
-        raise
-    except Exception as err:
-        logger.error(f'Unexpected error in get_cur_user: {err}')
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail='Internal server error'
-        ) from err
 
 
 CurrentUser = Annotated[DocumentUser, Depends(get_current_user)]

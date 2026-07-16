@@ -45,10 +45,3 @@ class DatabaseOperationException(UserOperationException):
     def __init__(self, message: str = "Database operation failed"):
         super().__init__(message, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-class AuthenticationException(UserOperationException):
-    """
-    Authentication process failed
-    """
-    def __init__(self, message: str = "Authentication failed"):
-        super().__init__(message, status_code=status.HTTP_401_UNAUTHORIZED)
