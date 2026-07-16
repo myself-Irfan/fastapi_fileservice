@@ -4,7 +4,7 @@ import structlog.contextvars
 from fastapi import Request
 from starlette.concurrency import iterate_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.responses import Response, StreamingResponse
+from starlette.responses import Response
 from starlette.types import ASGIApp
 
 from app.config import settings
@@ -50,9 +50,9 @@ class LoggingContextMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             sanitized_res_headers = self.__sanitize(dict(response.headers))
 
-            if isinstance(response, StreamingResponse) and not isinstance(response, Response):
+            if response.headers.get("content-disposition"):
                 logger.info(
-                    "Request finished (streaming response)",
+                    "Request finished (file response)",
                     status_code=response.status_code,
                     headers=sanitized_res_headers
                 )
