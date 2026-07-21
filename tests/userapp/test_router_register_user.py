@@ -27,7 +27,7 @@ class TestRegisterRoute:
 
         response = client.post(self._register_url, json=duplicate_data)
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_409_CONFLICT
         assert 'already exists' in response.json().get('detail').lower()
 
     def test_register_invalid_email(self, client, invalid_user_data_bad_email, disable_rate_limiter):

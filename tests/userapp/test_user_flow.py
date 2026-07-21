@@ -54,4 +54,4 @@ class TestUserFlowIntegration:
         }
 
         response = client.post(self._register_url, json=duplicate_data)
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_409_CONFLICT
