@@ -6,6 +6,7 @@ from app.userapp.entities import DocumentUser
 from app.auth.service import AuthenticationService
 from app.auth.hashing import hash_pwd, verify_pwd
 from app.logger import get_logger
+from app.database.transaction import db_transaction
 from app.userapp.model import UserRegister
 from app.userapp.exceptions import DatabaseOperationException, UserDuplicateException, UserCreationException, \
     InvalidCredentialsException, UserNotFoundException
@@ -44,23 +45,17 @@ class UserService:
 
         hashed_pwd = hash_pwd(user_data.password)
 
-        try:
-            new_user = DocumentUser(
-                name=user_data.name,
-                email=user_data.email,
-                hashed_pwd=hashed_pwd
-            )
+        new_user = DocumentUser(
+            name=user_data.name,
+            email=user_data.email,
+            hashed_pwd=hashed_pwd
+        )
 
+        with db_transaction(self.db, UserCreationException, "Database error during user creation", refresh=[new_user]):
             self.db.add(new_user)
-            self.db.commit()
-            self.db.refresh(new_user)
 
-            logger.info('user creation successful', user_id=new_user.id)
-            return new_user
-        except (OperationalError, SQLAlchemyError) as db_err:
-            self.db.rollback()
-            logger.error("user creation failed", error=db_err, exc_info=True)
-            raise UserCreationException(f"Database error during user creation: {str(db_err)}") from db_err
+        logger.info('user creation successful', user_id=new_user.id)
+        return new_user
 
     def login_user(self, email: EmailStr, password: str) -> tuple[str, str]:
         user: DocumentUser = self.__fetch_user_by_email(email)

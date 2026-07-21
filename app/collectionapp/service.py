@@ -1,9 +1,11 @@
 from fastapi import status
+from functools import partial
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.logger import get_logger
+from app.database.transaction import db_transaction
 from app.collectionapp.entities import DocumentCollection
 from app.collectionapp.models.read_document_model import DocumentReadModel
 from app.collectionapp.models.create_document_model import DocumentCreateRequestModel
@@ -54,50 +56,29 @@ class DocumentService:
         return DocumentReadModel.model_validate(document)
 
     def create_document(self, user_id: int, doc_col_data: DocumentCreateRequestModel) -> int:
-        try:
-            new_doc_col: DocumentCollection = DocumentCollection(**doc_col_data.model_dump(), user_id=user_id)
-            self.db.add(new_doc_col)
-            self.db.commit()
-            self.db.refresh(new_doc_col)
+        new_doc_col: DocumentCollection = DocumentCollection(**doc_col_data.model_dump(), user_id=user_id)
+        on_error = partial(CollectionOperationException, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            return new_doc_col.id
-        except (SQLAlchemyError, OperationalError) as db_err:
-            self.db.rollback()
-            logger.error("document collection creation failed", error=db_err, exc_info=True)
-            raise CollectionOperationException(
-                message="Database error while creating collection",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            ) from db_err
+        with db_transaction(self.db, on_error, "Database error while creating collection", refresh=[new_doc_col]):
+            self.db.add(new_doc_col)
+
+        return new_doc_col.id
 
     def update_document(self, user_id: int, document_id: int, doc_col_data: DocumentUpdateRequestModel) -> None:
-        try:
-            document: DocumentCollection = self._get_document_instance(user_id, document_id)
+        document: DocumentCollection = self._get_document_instance(user_id, document_id)
+        on_error = partial(CollectionOperationException, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+        with db_transaction(self.db, on_error, f"database error while updating collection-{document_id}", refresh=[document], document_id=document_id):
             for key, value in doc_col_data.model_dump(exclude_unset=True).items():
                 setattr(document, key, value)
 
-            self.db.commit()
-            self.db.refresh(document)
-
-            logger.info("document collection update successful", collection_id=document.id)
-        except (SQLAlchemyError, OperationalError) as db_err:
-            self.db.rollback()
-            logger.error("document update failed", error=db_err, document_id=document_id, exc_info=True)
-            raise CollectionOperationException(
-                message=f"database error while updating collection-{document_id}",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            ) from db_err
+        logger.info("document collection update successful", collection_id=document.id)
 
     def delete_collection(self, user_id: int, collection_id: int) -> None:
-        try:
-            collection = self._get_document_instance(user_id, collection_id)
+        collection = self._get_document_instance(user_id, collection_id)
+        on_error = partial(CollectionOperationException, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        with db_transaction(self.db, on_error, f'database error while deleting collection-{collection_id}', collection_id=collection_id):
             self.db.delete(collection)
-            self.db.commit()
-            logger.info("document collection deletion successful", collection_id=collection_id)
-        except (SQLAlchemyError, OperationalError) as db_err:
-            self.db.rollback()
-            logger.error("collection deletion failed", collection_id=collection_id, error=db_err, exc_info=True)
-            raise CollectionOperationException(
-                message=f'database error while deleting collection-{collection_id}',
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            ) from db_err
+
+        logger.info("document collection deletion successful", collection_id=collection_id)
