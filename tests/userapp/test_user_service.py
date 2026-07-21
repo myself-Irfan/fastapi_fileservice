@@ -4,7 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError, OperationalError
 
 from app.userapp.entities import DocumentUser
 from app.userapp.model import UserRegister
-from app.userapp.exceptions import DatabaseOperationException, UserDuplicateException, UserCreationException, InvalidCredentialsException, UserNotFoundException
+from app.userapp.exceptions import DatabaseOperationException, UserDuplicateException, UserCreationException, InvalidCredentialsException
 from tests.userapp.conftest import sample_user_entity, mock_user_service
 
 
@@ -71,10 +71,10 @@ class TestUserServiceLogin:
         mock_auth_service.generate_access_token.assert_called_once()
         mock_auth_service.generate_refresh_token.assert_called_once()
 
-    def test_login_user_not_found(self, mock_user_service):
+    def test_login_unregistered_email_raises_invalid_credentials(self, mock_user_service):
         mock_user_service.db.query.return_value.filter_by.return_value.first.return_value = None
 
-        with pytest.raises(UserNotFoundException):
+        with pytest.raises(InvalidCredentialsException):
             mock_user_service.login_user('nonexistant@example.com', 'password')
 
     def test_login_invalid_password(self, mock_user_service, mock_auth_service, sample_user_entity):

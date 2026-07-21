@@ -22,14 +22,6 @@ class InvalidCredentialsException(UserOperationException):
     def __init__(self, message: str = 'invalid credentials'):
         super().__init__(message, status_code=status.HTTP_401_UNAUTHORIZED)
 
-class UserNotFoundException(UserOperationException):
-    """
-    User not found in database
-    """
-    def __init__(self, message: str = "User not found"):
-        super().__init__(message, status_code=status.HTTP_404_NOT_FOUND)
-
-
 class UserCreationException(UserOperationException):
     """
     User creation failed

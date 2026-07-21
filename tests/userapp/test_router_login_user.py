@@ -33,14 +33,14 @@ class TestLoginRoute:
         assert "access_token" in data["data"]
         assert "refresh_token" in data["data"]
 
-    def test_login_user_not_found(self, client):
+    def test_login_unregistered_email(self, client):
         login_data = {
             'email': 'nonexistant@gmail.com',
             'password': 'pwd123'
         }
         response = client.post(self._login_url, json=login_data)
 
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_login_wrong_pwd(self, client, mock_auth_service, make_test_user):
         mock_auth_service.verify_pwd.return_value = (False, False)

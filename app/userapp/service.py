@@ -9,7 +9,7 @@ from app.logger import get_logger
 from app.database.transaction import db_transaction
 from app.userapp.model import UserRegister
 from app.userapp.exceptions import DatabaseOperationException, UserDuplicateException, UserCreationException, \
-    InvalidCredentialsException, UserNotFoundException
+    InvalidCredentialsException
 
 logger = get_logger(__name__)
 
@@ -61,8 +61,8 @@ class UserService:
         user: DocumentUser = self.__fetch_user_by_email(email)
 
         if not user:
-            logger.warning("user not registered", email=email)
-            raise UserNotFoundException(f"user-{email} not registered")
+            logger.warning("login attempt for unregistered email", email=email)
+            raise InvalidCredentialsException("invalid email or password")
 
         is_valid, needs_rehash = verify_pwd(
             user.hashed_pwd,
@@ -70,7 +70,7 @@ class UserService:
         )
         if not is_valid:
             logger.warning(f'Invalid login attempt for user {email}')
-            raise InvalidCredentialsException("invalid credentials")
+            raise InvalidCredentialsException("invalid email or password")
 
         if needs_rehash:
             logger.info(f"Rehashing password for user {user.id}")
