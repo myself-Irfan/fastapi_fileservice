@@ -1,4 +1,4 @@
-from fastapi import Request
+from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
 from app.exceptions import AppException
@@ -21,4 +21,17 @@ class AppExceptionHandler:
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.message}
+        )
+
+    @staticmethod
+    async def handle_unhandled_exception(request: Request, exc: Exception) -> JSONResponse:
+        logger.error(
+            "Unhandled exception",
+            path=request.url.path,
+            error=str(exc),
+            exc_info=True,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": "Internal server error"}
         )

@@ -6,14 +6,14 @@ from typing import BinaryIO, Optional, Set, cast
 
 import magic
 from fastapi import UploadFile
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.utils import calculate_checksum
 from app.logger import get_logger
+from app.database.transaction import db_transaction
 from app.fileapp.entities import DocumentCollectionFile
-from app.fileapp.exceptions import DocumentNotFoundException, InvalidFileTypeException, FileProcessingException, FileUploadException
+from app.fileapp.exceptions import DocumentNotFoundException, InvalidFileTypeException, FileProcessingException
 from app.fileapp.mime_types import EXTENSION_TO_MIME
 from app.fileapp.value_objects import FileMetadata
 from app.collectionapp.entities import DocumentCollection
@@ -114,24 +114,12 @@ class FileUploadService:
                 user_id=user_id,
                 document_id=document_id,
             )
-            self.db.add(new_file)
-            self.db.commit()
-            self.db.refresh(new_file)
+
+            with db_transaction(self.db, FileProcessingException, "database error during file upload", refresh=[new_file]):
+                self.db.add(new_file)
 
             logger.info("file record creation successful", file_id=new_file.id)
 
-        except SQLAlchemyError as sql_err:
-            self.db.rollback()
+        finally:
             if temp_path and os.path.exists(temp_path):
                 os.remove(temp_path)
-            logger.error("file upload failed", error_type="database error", error=sql_err, exc_info=True)
-            raise FileProcessingException("database error during file upload") from sql_err
-        except FileUploadException:
-            if temp_path and os.path.exists(temp_path):
-                os.remove(temp_path)
-            raise
-        except Exception as e:
-            if temp_path and os.path.exists(temp_path):
-                os.remove(temp_path)
-            logger.error("file upload failed", error_type="unexpected error", error=e, exc_info=True)
-            raise FileProcessingException(f"unexpected error during file upload: {str(e)}") from e

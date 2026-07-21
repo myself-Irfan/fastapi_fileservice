@@ -33,6 +33,11 @@ def create_app() -> FastAPI:
         AppExceptionHandler.handle_app_exception
     )
 
+    app.add_exception_handler(
+        Exception,
+        AppExceptionHandler.handle_unhandled_exception
+    )
+
     app.mount('/static', StaticFiles(directory='static'), name='static')
 
     register_routers(app)
