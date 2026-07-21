@@ -140,24 +140,6 @@ class UIUtils {
         if (input) input.min = new Date().toISOString().split('T')[0];
     }
 
-    // server validation error handling
-    static handleServerValidation(errors) {
-        if (Array.isArray(errors)) {
-            errors.forEach(error => {
-                const field = error.loc?.[1];
-                if (field && document.getElementById(field)) {
-                    this.showFieldError(field, error.msg)
-                }
-            });
-        } else if (typeof errors === 'object') {
-            Object.keys(errors).forEach(field => {
-                if (document.getElementById(field)) {
-                    this.showFieldError(field, errors[field]);
-                }
-            });
-        }
-    }
-
     // redirect with delay
     static redirectAfterDelay(url, delay = 1500) {
         setTimeout(() => {

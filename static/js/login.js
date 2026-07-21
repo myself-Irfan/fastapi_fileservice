@@ -35,17 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
             UIUtils.redirectAfterDelay('/');
 
         } catch (err) {
-            // handle different error types
-            if (err.message.includes('detail')) {
-                try {
-                    const errorData = JSON.parse(err.message);
-                    if (Array.isArray(errorData.detail)) {
-                        UIUtils.handleServerValidation(errorData.detail);
-                        return;
-                    }
-                } catch {}
+            // field-level validation errors come back as a list of formatted messages
+            if (Array.isArray(err.data?.errors) && err.data.errors.length) {
+                UIUtils.showAlert(alertContainer, 'danger', err.data.errors.join('<br>'));
+            } else {
+                UIUtils.showAlert(alertContainer, 'danger', err.message || 'Login failed.');
             }
-            UIUtils.showAlert(alertContainer, 'danger', err.message || 'Login failed.');
         } finally {
             UIUtils.setLoadingState('loginBtn', false)
         }

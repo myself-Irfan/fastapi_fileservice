@@ -183,14 +183,18 @@ class ApiClient {
     async handleResponse(response) {
         if (!response.ok) {
             let errorMessage = 'Request failed';
+            let errorData = null;
 
             try {
-                const errorData = await response.json();
+                errorData = await response.json();
                 errorMessage = errorData.detail || errorData.message || errorMessage;
             } catch (err) {
                 errorMessage = this.getStatusMessage(response.status);
             }
-            throw new Error(errorMessage);
+
+            const error = new Error(errorMessage);
+            error.data = errorData;
+            throw error;
         }
         if (response.status === 204) return null;
         return response.json();

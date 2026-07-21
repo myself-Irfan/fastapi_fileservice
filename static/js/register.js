@@ -29,21 +29,16 @@ document.addEventListener('DOMContentLoaded', () => {
             )
             UIUtils.redirectAfterDelay('/login')
         } catch (err) {
-            if (err.message.includes('detail')) {
-                try {
-                    const errorData = JSON.parse(err.message);
-                    if (errorData.detail && typeof errorData.detail === 'object') {
-                        UIUtils.handleServerValidation(errorData.detail);
-                        return;
-                    }
-                } catch {}
+            // field-level validation errors come back as a list of formatted messages
+            if (Array.isArray(err.data?.errors) && err.data.errors.length) {
+                UIUtils.showAlert(alertContainer, 'danger', err.data.errors.join('<br>'));
+            } else {
+                UIUtils.showAlert(
+                    alertContainer,
+                    'danger',
+                    err.message || 'Registration failed'
+                );
             }
-
-            UIUtils.showAlert(
-                alertContainer,
-                'danger',
-                error.message || 'Registration failed'
-            );
         }
     });
 
