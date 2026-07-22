@@ -47,7 +47,7 @@ class TestFileDownloadService:
             with pytest.raises(FileNotFoundException):
                 mock_download_service.get_file_path(user_id=1, file_id=1)
 
-    def test_get_file_path_returns_read_model(self, mock_download_service, sample_file_entity):
+    def test_get_file_path_returns_file_entity(self, mock_download_service, sample_file_entity):
         mock_download_service.db.query.return_value.filter_by.return_value.first.return_value = (
             sample_file_entity
         )

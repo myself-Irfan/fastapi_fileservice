@@ -12,7 +12,6 @@ def _sample_file_read(**overrides):
         id=1,
         title="notes.txt",
         is_active=True,
-        file_path="/uploads/deadbeef.txt",
         file_size=7,
         mime_type="text/plain",
         extension=".txt",

@@ -109,7 +109,6 @@ class TestFileReadModel:
             "id": 1,
             "title": "report.pdf",
             "is_active": True,
-            "file_path": "/uploads/abc.pdf",
             "file_size": 1024,
             "mime_type": "application/pdf",
             "extension": ".pdf",

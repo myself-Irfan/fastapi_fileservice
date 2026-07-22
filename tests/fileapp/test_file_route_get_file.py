@@ -46,7 +46,7 @@ class TestGetFileByIdRoute:
         assert "data" in data
 
         file = data["data"]
-        for field in ("id", "title", "is_active", "file_path", "file_size", "mime_type", "extension", "created_at"):
+        for field in ("id", "title", "is_active", "file_size", "mime_type", "extension", "created_at"):
             assert field in file
 
     def test_get_file_returns_correct_metadata(self, client, auth_headers, make_test_file):

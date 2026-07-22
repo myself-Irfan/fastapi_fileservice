@@ -39,7 +39,7 @@ class TestGetAllFilesRoute:
 
         if len(data["data"]) > 0:
             file = data["data"][0]
-            for field in ("id", "title", "is_active", "file_path", "file_size", "mime_type", "extension", "created_at"):
+            for field in ("id", "title", "is_active", "file_size", "mime_type", "extension", "created_at"):
                 assert field in file
 
     def test_get_all_files_message_format(self, client, auth_headers, make_test_file):

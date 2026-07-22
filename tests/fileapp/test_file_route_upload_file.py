@@ -16,7 +16,6 @@ def _sample_file_read(**overrides):
         id=1,
         title="test.txt",
         is_active=True,
-        file_path="/uploads/deadbeef.txt",
         file_size=13,
         mime_type="text/plain",
         extension=".txt",

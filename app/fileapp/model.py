@@ -20,7 +20,6 @@ class FileUpdate(BaseModel):
 class FileRead(FileBase):
     id: int
     is_active: bool
-    file_path: str
     file_size: int
     mime_type: str
     extension: str
