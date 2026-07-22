@@ -31,7 +31,7 @@ class TestCollectionFlowIntegration:
 
         # update
         update_data = {"title": "Updated Title", "description": "Updated description"}
-        update_resp = client.put(
+        update_resp = client.patch(
             self._query_param_url.format(collection_id=col_id),
             headers=auth_headers,
             json=update_data

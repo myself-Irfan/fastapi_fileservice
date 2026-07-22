@@ -7,7 +7,7 @@ from app.collectionapp.dependencies import DependsDocumentService
 
 router = APIRouter()
 
-@router.put(
+@router.patch(
     '/{document_id}',
     response_model=DocumentResponseModel,
     summary='Update a document',

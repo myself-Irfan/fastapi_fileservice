@@ -16,7 +16,7 @@ class TestUpdateCollectionRoute:
             "title": "Updated Title",
             "description": "Updated description"
         }
-        response = client.put(url, json=update_data, headers=auth_headers)
+        response = client.patch(url, json=update_data, headers=auth_headers)
 
         assert response.status_code == status.HTTP_200_OK
         assert "message" in response.json()
@@ -25,21 +25,21 @@ class TestUpdateCollectionRoute:
     def test_update_collection_partial_title(self, client, auth_headers, make_test_collection):
         url = self._update_url.format(collection_id=make_test_collection.id)
         update_data = {"title": "Only Title Update"}
-        response = client.put(url, json=update_data, headers=auth_headers)
+        response = client.patch(url, json=update_data, headers=auth_headers)
 
         assert response.status_code == status.HTTP_200_OK
 
     def test_update_collection_partial_description(self, client, auth_headers, make_test_collection):
         url = self._update_url.format(collection_id=make_test_collection.id)
         update_data = {"description": "Only description update"}
-        response = client.put(url, json=update_data, headers=auth_headers)
+        response = client.patch(url, json=update_data, headers=auth_headers)
 
         assert response.status_code == status.HTTP_200_OK
 
     def test_update_collection_not_found(self, client, auth_headers, valid_collection_data):
         url = self._update_url.format(collection_id=999)
         update_data = valid_collection_data
-        response = client.put(
+        response = client.patch(
             url,
             json=update_data,
             headers=auth_headers
@@ -50,7 +50,7 @@ class TestUpdateCollectionRoute:
     def test_update_collection_no_auth(self, client, make_test_collection, valid_collection_data):
         url = self._update_url.format(collection_id=make_test_collection.id)
         update_data = valid_collection_data
-        response = client.put(
+        response = client.patch(
             url,
             json=update_data
         )
@@ -59,7 +59,7 @@ class TestUpdateCollectionRoute:
 
     def test_update_collection_empty_payload(self, client, auth_headers, make_test_collection):
         url = self._update_url.format(collection_id=make_test_collection.id)
-        response = client.put(url, json={}, headers=auth_headers)
+        response = client.patch(url, json={}, headers=auth_headers)
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert response.json()["detail"] == 'Validation error'
@@ -68,14 +68,14 @@ class TestUpdateCollectionRoute:
     def test_update_collection_title_too_long(self, client, auth_headers, make_test_collection):
         url = self._update_url.format(collection_id=make_test_collection.id)
         update_data = {"title": "a" * 150}
-        response = client.put(url, json=update_data, headers=auth_headers)
+        response = client.patch(url, json=update_data, headers=auth_headers)
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     def test_update_collection_preserve_others(self, client, auth_headers, make_test_collection):
         url = self._update_url.format(collection_id=make_test_collection.id)
         update_data = {"title": "updated_title"}
-        client.put(
+        client.patch(
             url,
             json=update_data,
             headers=auth_headers

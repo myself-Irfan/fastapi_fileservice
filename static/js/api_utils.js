@@ -136,9 +136,9 @@ class ApiClient {
         });
     }
 
-    async put(endpoint, data) {
+    async patch(endpoint, data) {
         return this.request(endpoint, {
-            method: 'PUT',
+            method: 'PATCH',
             body: JSON.stringify(data)
         });
     }

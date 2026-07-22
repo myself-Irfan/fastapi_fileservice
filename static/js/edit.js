@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const res = await apiClient.put(`/collection/${collectionId}`, payload);
+            const res = await apiClient.patch(`/collection/${collectionId}`, payload);
             await apiClient.handleResponse(res);
 
             showFeedback('success', 'Collection updated successfully.');
