@@ -1,4 +1,5 @@
 import io
+from datetime import datetime
 import pytest
 from unittest.mock import Mock, mock_open, patch
 from sqlalchemy.exc import SQLAlchemyError
@@ -24,6 +25,13 @@ def _make_upload_file(filename="test.txt", content=b"hello test content"):
     return f
 
 
+def _refresh_side_effect(obj):
+    """mimics what a real db.refresh() would populate after insert, for FileRead validation"""
+    obj.id = 1
+    obj.is_active = True
+    obj.created_at = datetime.now()
+
+
 @pytest.mark.unit
 @pytest.mark.fileapp
 class TestFileUploadServiceUpload:
@@ -34,7 +42,7 @@ class TestFileUploadServiceUpload:
             return_value="text/plain",
         )
         upload_service.db.query.return_value.filter_by.return_value.first.return_value = None
-        upload_service.db.refresh = Mock()
+        upload_service.db.refresh = Mock(side_effect=_refresh_side_effect)
 
         upload_service.upload_file(file=mock_file, user_id=1, document_id=None)
 
@@ -52,7 +60,7 @@ class TestFileUploadServiceUpload:
             return_value="text/plain",
         )
         upload_service.db.query.return_value.filter_by.return_value.first.return_value = existing
-        upload_service.db.refresh = Mock()
+        upload_service.db.refresh = Mock(side_effect=_refresh_side_effect)
 
         upload_service.upload_file(file=mock_file, user_id=1, document_id=None)
 
@@ -122,7 +130,7 @@ class TestFileUploadServiceUpload:
         )
         upload_service.db.get.return_value = Mock()
         upload_service.db.query.return_value.filter_by.return_value.first.return_value = None
-        upload_service.db.refresh = Mock()
+        upload_service.db.refresh = Mock(side_effect=_refresh_side_effect)
 
         upload_service.upload_file(file=mock_file, user_id=1, document_id=5)
 
@@ -136,7 +144,7 @@ class TestFileUploadServiceUpload:
             return_value="text/plain",
         )
         upload_service.db.query.return_value.filter_by.return_value.first.return_value = None
-        upload_service.db.refresh = Mock()
+        upload_service.db.refresh = Mock(side_effect=_refresh_side_effect)
 
         upload_service.upload_file(file=mock_file, user_id=42, document_id=None)
 

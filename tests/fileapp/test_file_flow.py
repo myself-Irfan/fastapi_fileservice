@@ -1,7 +1,29 @@
+from datetime import datetime
+
 import pytest
 from fastapi import status
 
+from app.fileapp.model import FileRead
 from app.fileapp.services.upload_service import FileUploadService
+
+
+def _sample_file_read(**overrides):
+    data = dict(
+        id=1,
+        title="notes.txt",
+        is_active=True,
+        file_path="/uploads/deadbeef.txt",
+        file_size=7,
+        mime_type="text/plain",
+        extension=".txt",
+        checksum="deadbeef",
+        created_at=datetime.now(),
+        updated_at=None,
+        document_id=None,
+        user_id=1,
+    )
+    data.update(overrides)
+    return FileRead(**data)
 
 
 @pytest.mark.integration
@@ -41,7 +63,7 @@ class TestFileFlowIntegration:
 
     def test_upload_then_list_flow(self, client, auth_headers, mocker):
         # track what the service would have created
-        mocker.patch.object(FileUploadService, "upload_file", return_value=None)
+        mocker.patch.object(FileUploadService, "upload_file", return_value=_sample_file_read())
 
         upload_resp = client.post(
             self._upload_url,

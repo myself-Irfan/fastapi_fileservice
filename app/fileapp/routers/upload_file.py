@@ -1,4 +1,4 @@
-from fastapi import status, UploadFile, File, Form, APIRouter, HTTPException
+from fastapi import status, UploadFile, File, Form, APIRouter, HTTPException, Response
 from typing import Optional
 
 from app.auth.dependencies import CurrentUser
@@ -28,6 +28,7 @@ logger = get_logger(__name__)
     }
 )
 def upload_file(
+    response: Response,
     current_user: CurrentUser,
     file_upload_service: DependsFileUploadService,
     file: UploadFile = File(...),
@@ -46,9 +47,10 @@ def upload_file(
             detail="no filename provided"
         )
 
-    file_upload_service.upload_file(
+    uploaded_file = file_upload_service.upload_file(
         file=file,
         user_id=current_user.id,
         document_id=document_id
     )
-    return FileReadResponse(message="file upload successful")
+    response.headers["Location"] = f"/api/files/{uploaded_file.id}"
+    return FileReadResponse(message="file upload successful", data=uploaded_file)

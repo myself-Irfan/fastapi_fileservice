@@ -14,6 +14,7 @@ from app.logger import get_logger
 from app.database.transaction import db_transaction
 from app.fileapp.entities import DocumentCollectionFile
 from app.fileapp.exceptions import DocumentNotFoundException, InvalidFileTypeException, FileProcessingException
+from app.fileapp.model import FileRead
 from app.fileapp.mime_types import EXTENSION_TO_MIME
 from app.fileapp.value_objects import FileMetadata
 from app.collectionapp.entities import DocumentCollection
@@ -93,7 +94,7 @@ class FileUploadService:
             checksum=checksum,
         )
 
-    def upload_file(self, file: UploadFile, user_id: int, document_id: Optional[int] = None):
+    def upload_file(self, file: UploadFile, user_id: int, document_id: Optional[int] = None) -> FileRead:
         temp_path = None
 
         if document_id is not None and not self.__check_document_collection_exist(document_id):
@@ -120,6 +121,7 @@ class FileUploadService:
 
             logger.info("file record creation successful", file_id=new_file.id)
 
+            return FileRead.model_validate(new_file)
         finally:
             if temp_path and os.path.exists(temp_path):
                 os.remove(temp_path)

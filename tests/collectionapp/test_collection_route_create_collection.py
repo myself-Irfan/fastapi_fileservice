@@ -19,6 +19,7 @@ class TestCreateCollectionRoute:
         assert response.status_code == status.HTTP_201_CREATED
         assert 'message' in response.json()
         assert "created successfully" in response.json()["message"].lower()
+        assert response.headers["Location"] == f"/api/collection/{response.json()['id']}"
 
     def test_create_collection_without_auth(self, client, valid_collection_data):
         response = client.post(

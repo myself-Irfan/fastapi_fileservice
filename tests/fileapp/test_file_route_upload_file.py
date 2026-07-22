@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 from fastapi import status
 
@@ -5,7 +7,27 @@ from app.fileapp.exceptions import (
     DocumentNotFoundException,
     InvalidFileTypeException,
 )
+from app.fileapp.model import FileRead
 from app.fileapp.services.upload_service import FileUploadService
+
+
+def _sample_file_read(**overrides):
+    data = dict(
+        id=1,
+        title="test.txt",
+        is_active=True,
+        file_path="/uploads/deadbeef.txt",
+        file_size=13,
+        mime_type="text/plain",
+        extension=".txt",
+        checksum="deadbeef",
+        created_at=datetime.now(),
+        updated_at=None,
+        document_id=None,
+        user_id=1,
+    )
+    data.update(overrides)
+    return FileRead(**data)
 
 
 @pytest.mark.integration
@@ -16,7 +38,7 @@ class TestUploadFileRoute:
         self._url = "api/files/upload"
 
     def test_upload_success(self, client, auth_headers, mocker):
-        mocker.patch.object(FileUploadService, "upload_file", return_value=None)
+        mocker.patch.object(FileUploadService, "upload_file", return_value=_sample_file_read())
 
         response = client.post(
             self._url,
@@ -26,6 +48,7 @@ class TestUploadFileRoute:
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json()["message"] == "file upload successful"
+        assert response.headers["Location"] == "/api/files/1"
 
     def test_upload_without_auth(self, client):
         response = client.post(
@@ -85,7 +108,7 @@ class TestUploadFileRoute:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_upload_with_document_id_success(self, client, auth_headers, mocker):
-        mocker.patch.object(FileUploadService, "upload_file", return_value=None)
+        mocker.patch.object(FileUploadService, "upload_file", return_value=_sample_file_read())
 
         response = client.post(
             self._url,
@@ -97,7 +120,7 @@ class TestUploadFileRoute:
         assert response.status_code == status.HTTP_201_CREATED
 
     def test_upload_response_structure(self, client, auth_headers, mocker):
-        mocker.patch.object(FileUploadService, "upload_file", return_value=None)
+        mocker.patch.object(FileUploadService, "upload_file", return_value=_sample_file_read())
 
         response = client.post(
             self._url,
