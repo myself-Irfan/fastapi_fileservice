@@ -1,5 +1,6 @@
-from fastapi import APIRouter, status, HTTPException, Header
+from fastapi import APIRouter, Header
 
+from app.auth.exceptions import AuthenticationError
 from app.auth.service import AuthenticationService
 from app.auth.model import RefreshTokenResponse, RefreshTokenData
 from app.database.core import DbSession
@@ -20,7 +21,7 @@ router = APIRouter(
             'description': 'Access token refreshed successfully',
             'model': RefreshTokenResponse
         },
-        400: {'description': 'Invalid or expired refresh token'},
+        401: {'description': 'Invalid or expired refresh token'},
         500: {'description': 'Internal server error'}
     }
 )
@@ -30,10 +31,7 @@ def refresh_user_access_token(db: DbSession, authorization: str = Header(...)) -
     """
 
     if not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Invalid Authorization header format'
-        )
+        raise AuthenticationError('Invalid Authorization header format')
 
     refresh_token = authorization.removeprefix("Bearer").strip()
 

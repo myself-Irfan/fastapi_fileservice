@@ -7,11 +7,11 @@ from app.auth.hashing import hash_pwd
 
 @pytest.mark.unit
 class TestHashPwdFailure:
-    def test_hashing_failure_does_not_leak_error_details(self, mocker):
+    def test_hashing_failure_propagates_as_server_error(self, mocker):
         hasher = mocker.patch('app.auth.hashing._pwd_hasher')
         hasher.hash.side_effect = HashingError('secret internal detail')
 
-        with pytest.raises(AuthenticationError) as exc_info:
+        with pytest.raises(HashingError) as exc_info:
             hash_pwd('password123')
 
-        assert exc_info.value.message == 'Password hashing failed'
+        assert not isinstance(exc_info.value, AuthenticationError)

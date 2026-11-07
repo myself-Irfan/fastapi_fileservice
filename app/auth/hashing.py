@@ -1,7 +1,6 @@
 from argon2 import PasswordHasher
-from argon2.exceptions import HashingError, InvalidHashError, VerifyMismatchError
+from argon2.exceptions import InvalidHashError, VerifyMismatchError
 
-from app.auth.exceptions import AuthenticationError
 from app.logger import get_logger
 
 logger = get_logger(__name__)
@@ -21,16 +20,11 @@ def hash_pwd(pwd_str: str) -> str:
     :param pwd_str: Plain text password
     :return: Hashed password string
     :raises ValueError: If password is empty
-    :raises AuthenticationError: If hashing fails
     """
     if not pwd_str or not pwd_str.strip():
         raise ValueError('Password cannot be empty')
 
-    try:
-        return _pwd_hasher.hash(pwd_str)
-    except HashingError as err:
-        logger.error(f'Password hashing failed: {err}')
-        raise AuthenticationError('Password hashing failed') from err
+    return _pwd_hasher.hash(pwd_str)
 
 
 def verify_pwd(pwd_hashed: str, pwd_str: str) -> tuple[bool, bool]:

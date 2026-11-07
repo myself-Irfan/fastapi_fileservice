@@ -1,5 +1,7 @@
 import pytest
+from argon2.exceptions import HashingError
 from fastapi import status
+from fastapi.testclient import TestClient
 
 from app.config import settings
 
@@ -85,6 +87,18 @@ class TestRegisterRoute:
 
         response = client.post(self._register_url, json=data)
         assert response.status_code == status.HTTP_201_CREATED
+
+    def test_register_hashing_failure_returns_generic_500(self, client, valid_user_data, disable_rate_limiter, mocker):
+        hasher = mocker.patch('app.auth.hashing._pwd_hasher')
+        hasher.hash.side_effect = HashingError('secret internal detail')
+
+        with TestClient(client.app, raise_server_exceptions=False) as server_client:
+            response = server_client.post(self._register_url, json=valid_user_data)
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"detail": "Internal server error"}
+        assert 'www-authenticate' not in response.headers
+
 
 @pytest.mark.integration
 @pytest.mark.userapp

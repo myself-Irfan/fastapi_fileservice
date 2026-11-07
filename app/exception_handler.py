@@ -25,7 +25,8 @@ class AppExceptionHandler:
         )
         return JSONResponse(
             status_code=exc.status_code,
-            content={"detail": exc.message}
+            content={"detail": exc.message},
+            headers=exc.headers
         )
 
     @staticmethod

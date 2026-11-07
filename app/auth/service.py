@@ -23,7 +23,6 @@ class AuthenticationService:
             :param expires_delta: Token expiration time
             :param token_type: Type of token
             :return: JWT token
-            :raises AuthError: If token creation fails
             """
 
         if user_id <= 0:
@@ -32,22 +31,18 @@ class AuthenticationService:
         if not isinstance(token_type, TokenType):
             raise ValueError('Token type must be access or refresh')
 
-        try:
-            now = datetime.now(timezone.utc)
-            payload = {
-                'sub': str(user_id),
-                'type': token_type.value,
-                'iat': now,
-                'exp': now + expires_delta
-            }
-            return jwt.encode(
-                payload,
-                settings.secret_key,
-                algorithm=settings.algorithm
-            )
-        except Exception as err:
-            logger.error(f'{token_type} Token creation failed: {err}')
-            raise AuthenticationError(f'Failed to create {token_type} token') from err
+        now = datetime.now(timezone.utc)
+        payload = {
+            'sub': str(user_id),
+            'type': token_type.value,
+            'iat': now,
+            'exp': now + expires_delta
+        }
+        return jwt.encode(
+            payload,
+            settings.secret_key,
+            algorithm=settings.algorithm
+        )
 
     @classmethod
     def generate_access_token(cls, user_id: int) -> str:

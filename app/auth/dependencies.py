@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.exc import SQLAlchemyError
 from typing import Annotated
@@ -6,6 +6,8 @@ from typing import Annotated
 from app.database.core import DbSession
 from app.userapp.entities import DocumentUser
 from app.auth.enums import TokenType
+from app.auth.exceptions import AuthenticationError
+from app.exceptions import AppException
 from app.auth.service import AuthenticationService
 from app.logger import get_logger
 
@@ -29,27 +31,16 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: DbSessio
 
         if not user_id:
             logger.warning('Invalid or expired token')
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail='Invalid/expired token',
-                headers={'WWW-Authenticate': 'Bearer'}
-            )
+            raise AuthenticationError('Invalid/expired token')
 
         user = db.get(DocumentUser, user_id)
         if not user:
             logger.warning(f'User-{user_id} not found')
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f'User-{user_id} not found',
-                headers={'WWW-Authenticate': 'Bearer'}
-            )
+            raise AuthenticationError(f'User-{user_id} not found')
         return user
     except SQLAlchemyError as err:
         logger.error('user retrieval failed', error_type='database error', error=str(err), exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail='Database error'
-        ) from err
+        raise AppException('Database error', status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from err
 
 
 CurrentUser = Annotated[DocumentUser, Depends(get_current_user)]
