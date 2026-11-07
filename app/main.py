@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
+from slowapi.errors import RateLimitExceeded
 
 from app.middleware.logging_context import LoggingContextMiddleware
 from app.validation_handler import ValidationErrorHandler
@@ -31,6 +32,11 @@ def create_app() -> FastAPI:
     app.add_exception_handler(
         AppException,
         AppExceptionHandler.handle_app_exception
+    )
+
+    app.add_exception_handler(
+        RateLimitExceeded,
+        AppExceptionHandler.handle_rate_limit_exceeded
     )
 
     app.add_exception_handler(

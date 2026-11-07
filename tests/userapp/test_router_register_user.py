@@ -1,6 +1,8 @@
 import pytest
 from fastapi import status
 
+from app.config import settings
+
 
 @pytest.mark.integration
 @pytest.mark.userapp
@@ -92,25 +94,24 @@ class TestRateLimiting:
         self._register_url = 'api/users/register'
 
     @pytest.mark.slow
-    def test_register_rate_limit(self, client, mock_auth_service):
-        success_count = 0
-        rate_limited = False
+    def test_register_rate_limit(self, client, mock_auth_service, disable_rate_limiter):
+        limit = settings.register_limit_per_hour
 
-        for i in range(11):
+        for i in range(limit):
             data = {
                 "name": f"User {i}",
                 "email": f"user{i}@example.com",
                 "password": "password123",
             }
             response = client.post(self._register_url, json=data)
+            assert response.status_code == status.HTTP_201_CREATED, response.text
 
-            if response.status_code == status.HTTP_201_CREATED:
-                success_count += 1
-            elif response.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
-                rate_limited = True
-                break
-            else:
-                pytest.fail(f"Unexpected response: {response.status_code}, {response.text}")
+        response = client.post(self._register_url, json={
+            "name": "One Too Many",
+            "email": "one.too.many@example.com",
+            "password": "password123",
+        })
 
-        assert success_count <= 10
-        assert rate_limited or success_count == 10
+        assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+        assert response.json() == {"detail": "Too many requests. Please try again later."}
+        assert 1 <= int(response.headers["Retry-After"]) <= 3600

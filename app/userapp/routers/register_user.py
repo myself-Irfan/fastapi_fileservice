@@ -19,7 +19,8 @@ router = APIRouter()
             "description": 'User created successfully',
             'model': ApiResponse
         },
-        400: {'description': 'Email already in use'},
+        409: {'description': 'Email already in use'},
+        429: {'description': 'Too many requests'},
         500: {'description': 'Internal server error'}
     }
 )

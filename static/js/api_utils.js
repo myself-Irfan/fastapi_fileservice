@@ -206,7 +206,9 @@ class ApiClient {
             401: 'Unauthorized. Please log in again.',
             403: 'Not permitted to perform this action.',
             404: 'Resource not found.',
+            409: 'Conflict with existing data.',
             422: 'Data validation failed',
+            429: 'Too many requests. Please try again later.',
             500: 'Server error. Please try again later.'
         };
         return message[status] || `Error ${status}`;

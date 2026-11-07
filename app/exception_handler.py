@@ -1,8 +1,13 @@
+import math
+import time
+
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 
 from app.exceptions import AppException
 from app.logger import get_logger
+from app.rate_limiter import limiter
 
 logger = get_logger(__name__)
 
@@ -21,6 +26,24 @@ class AppExceptionHandler:
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.message}
+        )
+
+    @staticmethod
+    async def handle_rate_limit_exceeded(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+        rate_limit, keys = request.state.view_rate_limit
+        reset_at, _ = limiter.limiter.get_window_stats(rate_limit, *keys)
+        retry_after = max(1, math.ceil(reset_at - time.time()))
+
+        logger.warning(
+            "Rate limit exceeded",
+            path=request.url.path,
+            limit=str(rate_limit),
+            retry_after=retry_after,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            content={"detail": "Too many requests. Please try again later."},
+            headers={"Retry-After": str(retry_after)},
         )
 
     @staticmethod
