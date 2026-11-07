@@ -1,10 +1,13 @@
+from functools import partial
+
 from sqlalchemy import and_
-from sqlalchemy.exc import SQLAlchemyError, OperationalError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
 from fastapi import status
 
+from app.database.query import get_or_raise
 from app.logger import get_logger
 from app.fileapp.entities import DocumentCollectionFile
 from app.fileapp.model import FileRead
@@ -18,23 +21,16 @@ class FileService:
         self.db = db
 
     def _get_file_instance(self, user_id: int, file_id: int) -> DocumentCollectionFile:
-        try:
-            file: DocumentCollectionFile | None = self.db.query(DocumentCollectionFile).filter_by(
-                id=file_id,
-                user_id=user_id,
-                is_active=True
-            ).first()
-        except (SQLAlchemyError, OperationalError) as db_err:
-            logger.error("file retrieval failed", file_id=file_id, error=db_err, exc_info=True)
-            raise FileOperationException(
-                message=f'database error while retrieving file-{file_id}',
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            ) from db_err
-        else:
-            if not file:
-                logger.warning("file not found", file_id=file_id)
-                raise FileNotFoundException(f"file-{file_id} not found")
-            return file
+        return get_or_raise(
+            self.db,
+            DocumentCollectionFile,
+            file_id,
+            "file",
+            not_found=FileNotFoundException,
+            on_error=partial(FileOperationException, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR),
+            user_id=user_id,
+            is_active=True,
+        )
 
     def fetch_files(self, user_id: int, document_id: Optional[int] = None) -> List[FileRead]:
         try:

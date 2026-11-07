@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.logger import get_logger
+from app.database.query import get_or_raise
 from app.database.transaction import db_transaction
 from app.collectionapp.entities import DocumentCollection
 from app.collectionapp.models.read_document_model import DocumentReadModel
@@ -20,22 +21,15 @@ class DocumentService:
         self.db = db
 
     def _get_document_instance(self, user_id: int, collection_id: Optional[int]) -> DocumentCollection:
-        try:
-            collection: DocumentCollection | None = self.db.query(DocumentCollection).filter_by(
-                id=collection_id,
-                user_id=user_id
-            ).first()
-        except (SQLAlchemyError, OperationalError) as db_err:
-            logger.error('document collection retrieval failed', collection_id=collection_id, error=db_err, exc_info=True)
-            raise CollectionOperationException(
-                message=f'database error while retrieving collection-{collection_id}',
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            ) from db_err
-        else:
-            if not collection:
-                logger.warning('collection not found', collection_id=collection_id)
-                raise CollectionNotFoundException(f'collection-{collection_id} not found')
-            return collection
+        return get_or_raise(
+            self.db,
+            DocumentCollection,
+            collection_id,
+            'collection',
+            not_found=CollectionNotFoundException,
+            on_error=partial(CollectionOperationException, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR),
+            user_id=user_id,
+        )
 
     def fetch_documents(self, user_id: int) -> List[DocumentReadModel]:
         try:
