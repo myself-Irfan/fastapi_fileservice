@@ -5,6 +5,7 @@ from typing import Optional
 from app.config import settings
 from app.database.core import DbSession
 from app.userapp.entities import DocumentUser
+from app.auth.enums import TokenType
 from app.auth.exceptions import AuthenticationError
 from app.logger import get_logger
 
@@ -15,12 +16,12 @@ class AuthenticationService:
     """Service class for JWT token issuing and verification."""
 
     @staticmethod
-    def _create_jwt(user_id: int, expires_delta: timedelta, token_type: str) -> str:
+    def _create_jwt(user_id: int, expires_delta: timedelta, token_type: TokenType) -> str:
         """
             Create a JWT token
             :param data: Data to encode in token
             :param expires_delta: Token expiration time
-            :param token_type: Type of token ('access' or 'refresh')
+            :param token_type: Type of token
             :return: JWT token
             :raises AuthError: If token creation fails
             """
@@ -28,14 +29,14 @@ class AuthenticationService:
         if user_id <= 0:
             raise ValueError(f'Invalid user_id: {user_id}')
 
-        if token_type not in ['access', 'refresh']:
+        if not isinstance(token_type, TokenType):
             raise ValueError('Token type must be access or refresh')
 
         try:
             now = datetime.now(timezone.utc)
             payload = {
                 'sub': str(user_id),
-                'type': token_type,
+                'type': token_type.value,
                 'iat': now,
                 'exp': now + expires_delta
             }
@@ -58,7 +59,7 @@ class AuthenticationService:
         return cls._create_jwt(
             user_id=user_id,
             expires_delta=timedelta(minutes=settings.access_token_expire_minutes),
-            token_type='access'
+            token_type=TokenType.ACCESS
         )
 
     @classmethod
@@ -71,11 +72,11 @@ class AuthenticationService:
         return cls._create_jwt(
             user_id=user_id,
             expires_delta=timedelta(days=settings.refresh_token_expire_days),
-            token_type='refresh'
+            token_type=TokenType.REFRESH
         )
 
     @staticmethod
-    def verify_token(token: str, expected_type: str) -> Optional[dict]:
+    def verify_token(token: str, expected_type: TokenType) -> Optional[dict]:
         """
         Verify a JWT token and return its payload if valid.
         :param token:
@@ -116,7 +117,7 @@ class AuthenticationService:
             return None
 
     @classmethod
-    def get_user_from_token(cls, token: str, token_type: str) -> Optional[int]:
+    def get_user_from_token(cls, token: str, token_type: TokenType) -> Optional[int]:
         """
         Extract user ID from a JWT token.
         :param token: JWT token
@@ -154,7 +155,7 @@ class AuthenticationService:
         :return: New access token
         :raises AuthenticationError: If refresh token is invalid
         """
-        user_id = cls.get_user_from_token(refresh_token, 'refresh')
+        user_id = cls.get_user_from_token(refresh_token, TokenType.REFRESH)
         if not user_id:
             logger.error('Invalid refresh token')
             raise AuthenticationError('Invalid refresh token')

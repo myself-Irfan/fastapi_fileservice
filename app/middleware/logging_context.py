@@ -8,6 +8,7 @@ from starlette.responses import Response
 from starlette.types import ASGIApp
 
 from app.config import settings
+from app.auth.enums import TokenType
 from app.auth.service import AuthenticationService
 from app.logger import get_logger
 
@@ -86,7 +87,7 @@ class LoggingContextMiddleware(BaseHTTPMiddleware):
         if auth and auth.lower().startswith("bearer "):
             token = auth.split(" ", 1)[1]
             try:
-                user_id = AuthenticationService.get_user_from_token(token, token_type="access")
+                user_id = AuthenticationService.get_user_from_token(token, token_type=TokenType.ACCESS)
                 if user_id:
                     structlog.contextvars.bind_contextvars(user_id=user_id)
             except Exception:

@@ -5,6 +5,7 @@ from typing import Annotated
 
 from app.database.core import DbSession
 from app.userapp.entities import DocumentUser
+from app.auth.enums import TokenType
 from app.auth.service import AuthenticationService
 from app.logger import get_logger
 
@@ -23,7 +24,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: DbSessio
     try:
         user_id = AuthenticationService.get_user_from_token(
             token,
-            token_type='access'
+            token_type=TokenType.ACCESS
         )
 
         if not user_id:
