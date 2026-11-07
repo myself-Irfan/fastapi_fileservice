@@ -46,7 +46,7 @@ class AuthenticationService:
             )
         except Exception as err:
             logger.error(f'{token_type} Token creation failed: {err}')
-            raise AuthenticationError(f'Failed to create {token_type} token: {err}') from err
+            raise AuthenticationError(f'Failed to create {token_type} token') from err
 
     @classmethod
     def generate_access_token(cls, user_id: int) -> str:

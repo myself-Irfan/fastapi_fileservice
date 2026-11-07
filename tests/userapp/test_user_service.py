@@ -43,8 +43,10 @@ class TestUserServiceRegister:
     def test_create_user_fetch_error(self, mock_user_service, valid_user_register):
         mock_user_service.db.query.return_value.filter_by.return_value.first.side_effect = SQLAlchemyError("DB Error")
 
-        with pytest.raises(DatabaseOperationException):
+        with pytest.raises(DatabaseOperationException) as exc_info:
             mock_user_service.create_registered_user(valid_user_register)
+
+        assert exc_info.value.message == "Failed to fetch user"
 
     def test_create_user_password_hashed(self, mock_user_service, mock_auth_service, valid_user_register):
         mock_user_service.db.query.return_value.filter_by.return_value.first.return_value = None

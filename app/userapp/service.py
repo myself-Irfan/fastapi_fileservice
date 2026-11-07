@@ -26,7 +26,7 @@ class UserService:
             user = self.db.query(DocumentUser).filter_by(email=email).first()
         except (SQLAlchemyError, OperationalError) as db_err:
             logger.error("user retrieval failed", email=email, error=db_err, exc_info=True)
-            raise DatabaseOperationException(f"Failed to fetch user: {db_err}")
+            raise DatabaseOperationException("Failed to fetch user") from db_err
         else:
             return user
 
